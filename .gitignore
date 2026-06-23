@@ -17,3 +17,6 @@ packages/shared/src/generated/
 # Expo generated types
 apps/mobile/expo-env.d.ts
 apps/mobile/.expo/
+
+# TS incremental build info
+*.tsbuildinfo
