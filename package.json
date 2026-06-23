@@ -18,8 +18,17 @@
   },
   "devDependencies": {
     "turbo": "^2.0.0",
-    "typescript": "^5.5.0",
+    "typescript": "~6.0.3",
     "prettier": "^3.3.0"
+  },
+  "//react": "Declared at the root + pinned via overrides so the whole monorepo shares ONE hoisted React (Expo SDK 56's expected 19.2.3). Without this, Next and @clerk/clerk-react can't resolve react/react-dom.",
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "engines": {
     "node": ">=20"

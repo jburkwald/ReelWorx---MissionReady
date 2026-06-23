@@ -13,3 +13,7 @@ android/
 
 # Prisma 7 generated client (regenerated via `npm run db:generate`)
 packages/shared/src/generated/
+
+# Expo generated types
+apps/mobile/expo-env.d.ts
+apps/mobile/.expo/
