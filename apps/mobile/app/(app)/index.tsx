@@ -1,5 +1,6 @@
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import {
@@ -21,6 +22,7 @@ export default function Home() {
   const { signOut } = useAuth();
 
   const api = useApi();
+  const router = useRouter();
 
   const firstName =
     user?.firstName ??
@@ -122,9 +124,7 @@ export default function Home() {
         <View style={{ gap: spacing.md }}>
           <PrimaryButton
             label="Build your Story Profile"
-            onPress={() => {
-              /* Story Profile build flow — next build phase (Feature 1.2). */
-            }}
+            onPress={() => router.push('/(app)/story')}
           />
           <Text
             style={{
@@ -133,7 +133,7 @@ export default function Home() {
               color: colors.textMuted,
             }}
           >
-            Talk it through, upload a resume, or text — your choice. Coming next.
+            Talk it through, upload a résumé, or text — your choice.
           </Text>
         </View>
       </ScrollView>

@@ -16,3 +16,4 @@ export {
   type SyncedUser,
   type CreateOrganizationInput,
 } from './users';
+export { runStoryTurn } from './agent';
