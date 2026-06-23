@@ -17,3 +17,10 @@ export {
   type CreateOrganizationInput,
 } from './users';
 export { runStoryTurn } from './agent';
+export {
+  deriveIdealProfile,
+  createRole,
+  listRolesForOrg,
+  getRole,
+  type CreateRoleInput,
+} from './roles';

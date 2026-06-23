@@ -131,8 +131,16 @@ function Workspace({ orgName, greeting }: { orgName: string; greeting: string })
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         }}
       >
+        <Link href="/dashboard/roles" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-blue)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Your roles</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Create video-first roles; we read the human profile each one needs.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-blue)' }}>
+            Open roles →
+          </p>
+        </Link>
         {[
-          ['Your stories', 'Create job and culture Reels from beta themes.'],
           ['Suggested people', 'High-intent candidates, decoded and fit-read.'],
           ['Outreach tokens', 'Your monthly allotment. Spend them deliberately.'],
         ].map(([t, d]) => (
