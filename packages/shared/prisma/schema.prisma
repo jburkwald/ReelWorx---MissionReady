@@ -1,0 +1,465 @@
+// ReelWorx NextMission — Prisma schema
+//
+// Proposed revision of the DATA_MODEL.md draft. The core discipline is preserved:
+// Reel/Cast/type enums stay generic so new verticals (Epic 7) are config, not rebuilds.
+// A "job" is a Reel{type: job}. A role's target and a person's scores share ONE shape
+// (Full Spectrum) so the Fit Read is a direct comparison, never a translation layer.
+//
+// Changes from the draft are documented in the Claude Code response that produced this
+// file. Defaults that encode an open product decision (e.g. Profile.visibility) are
+// flagged with `// OPEN DECISION` and are trivially changeable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  candidate
+  company_admin
+  admin
+}
+
+enum ProfileVisibility {
+  public          // discoverable like a company/job story
+  companies_only  // visible to verified companies on-platform (draft-recommended default)
+  private         // owner-only, not surfaced in search or matching
+}
+
+enum ReelType {
+  job
+  candidate
+  culture
+  campus
+  franchise
+}
+
+enum CastAudience {
+  general
+  personalized
+}
+
+enum TokenType {
+  application // candidate reaches out
+  invite      // company reaches out
+}
+
+enum TokenStatus {
+  active
+  spent
+  expired
+}
+
+enum TokenSource {
+  monthly_grant // included allotment (candidate or company)
+  purchased     // Stripe top-up — the revenue line
+}
+
+enum MatchStatus {
+  suggested
+  applied
+  invited
+  connected
+  passed
+}
+
+enum PathStatus {
+  suggested
+  saved
+  rejected // teaches Path Discovery — a "no" sharpens the next suggestion (Feature 2.1)
+}
+
+enum AdvocateType {
+  employee
+  veteran_advocate
+  influencer
+  champion
+}
+
+enum AdvocateStatus {
+  active
+  pending_eligibility
+  approved
+  rejected
+}
+
+enum NotificationChannel {
+  push
+  sms
+  email
+}
+
+// ---------------------------------------------------------------------------
+// Core identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String   @id @default(cuid())
+  role            UserRole
+  authId          String   @unique @map("auth_id") // Clerk user id
+  email           String   @unique
+  hometown        String?
+  currentLocation String?  @map("current_location")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  profile            Profile?
+  organizationAdmins OrganizationAdmin[]
+  tokens             Token[]
+  advocate           Advocate?
+  notifications      Notification[]
+  events             Event[]
+  reels              Reel[] // candidate-owned Reels (Reel.ownerUserId)
+  casts              Cast[] // candidate-owned Casts (Cast.ownerUserId)
+  matches            Match[] // as the candidate
+  pathSuggestions    PathSuggestion[]
+  convertedLeads     CaptureLead[] // capture leads that became this user
+
+  @@map("users")
+}
+
+model Profile {
+  id                    String            @id @default(cuid())
+  userId                String            @unique @map("user_id")
+  visibility            ProfileVisibility @default(companies_only) // OPEN DECISION #1
+  videoIntroUrl         String?           @map("video_intro_url")
+  videoIntroAssetId     String?           @map("video_intro_asset_id") // provider-agnostic (Mux/Cloudinary asset id)
+  headline              String?
+  mosCode               String?           @map("mos_code")
+  mosTranslation        String?           @map("mos_translation") // Decoded Credibility (Feature 2.7)
+  fitProfile            Json?             @map("fit_profile") // five-dimension shape; mirrors Role.idealProfile. Brand display name ("Full Spectrum", pending TM) lives in packages/shared, not here.
+  completenessScore     Int               @default(0) @map("completeness_score") // profile-strength meter (goal-gradient)
+  openToRelocate        Boolean           @default(false) @map("open_to_relocate")
+  whyEachMove           Json?             @map("why_each_move") // narrative entries tied to work history (the "why")
+  livingProfileChapters Json?             @map("living_profile_chapters") // append-only, timestamped (Feature 1.6)
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roots Root[] // normalized for "Come Home" search (Feature 3.3)
+
+  @@map("profiles")
+}
+
+// Normalized roots so hometown search is an indexed query, not a JSON scan.
+// One primary hometown, plus any number of additional ties (Feature 3.3).
+model Root {
+  id        String  @id @default(cuid())
+  profileId String  @map("profile_id")
+  place     String // normalize on write (e.g. "Columbus, OH")
+  isPrimary Boolean @default(false) @map("is_primary")
+  reason    String?
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([place])
+  @@index([profileId])
+  @@map("roots")
+}
+
+// ---------------------------------------------------------------------------
+// Company side
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id                   String   @id @default(cuid())
+  name                 String
+  pageVideoUrl         String?  @map("page_video_url")
+  industry             String?
+  locations            Json? // array of strings
+  verified             Boolean  @default(false)
+  description          String?
+  plantedFlagStatement String?  @map("planted_flag_statement") // first-class trust signal (relatedness)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  admins     OrganizationAdmin[]
+  roles      Role[]
+  reels      Reel[]
+  casts      Cast[]
+  matches    Match[]
+  tokens     Token[] // company outreach allotment + top-ups
+  advocates  Advocate[]
+  shareLinks ShareLink[]
+
+  @@map("organizations")
+}
+
+// A company_admin User administers one or more Organizations.
+model OrganizationAdmin {
+  id             String @id @default(cuid())
+  userId         String @map("user_id")
+  organizationId String @map("organization_id")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("organization_admins")
+}
+
+model Role {
+  id             String   @id @default(cuid())
+  organizationId String   @map("organization_id")
+  title          String
+  location       String?
+  description    String?
+  mosFitTags     Json?    @map("mos_fit_tags")
+  idealProfile   Json?    @map("ideal_profile") // SAME five-dimension shape as Profile.fitProfile — Fit Read is a direct comparison
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reels        Reel[] // the job's Reel(s) — video-first by default (realistic job preview)
+  matches      Match[]
+
+  @@index([organizationId])
+  @@map("roles")
+}
+
+// ---------------------------------------------------------------------------
+// Story units (vertical-agnostic — this is the moat)
+// ---------------------------------------------------------------------------
+
+// Owner is exactly one of: a candidate User (candidate Reel) or an Organization
+// (job/culture/campus/franchise Reel). Explicit nullable FKs keep referential
+// integrity; the vertical-agnosticism lives in `type`, not in the owner shape.
+model Reel {
+  id             String   @id @default(cuid())
+  type           ReelType
+  ownerUserId    String?  @map("owner_user_id")
+  organizationId String?  @map("organization_id")
+  roleId         String?  @map("role_id")
+  themeId        String?  @map("theme_id") // Story Studio theme (assembly, not generation)
+  title          String?
+  videoUrl       String?  @map("video_url")
+  videoAssetId   String?  @map("video_asset_id") // provider-agnostic
+  videoProvider  String?  @map("video_provider") // "mux" | "cloudinary" — set once chosen
+  duration       Int?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  ownerUser    User?         @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role?         @relation(fields: [roleId], references: [id])
+  casts        Cast[]
+  shareLinks   ShareLink[]
+
+  @@index([type])
+  @@index([ownerUserId])
+  @@index([organizationId])
+  @@map("reels")
+}
+
+model Cast {
+  id             String       @id @default(cuid())
+  reelId         String?      @map("reel_id")
+  ownerUserId    String?      @map("owner_user_id")
+  organizationId String?      @map("organization_id")
+  type           String?
+  audioUrl       String?      @map("audio_url")
+  transcript     String?
+  runtime        Int?
+  audience       CastAudience @default(general)
+  matchId        String?      @map("match_id") // personalized Cast cached on a Match (Feature 2.6, R2)
+  candidateId    String?      @map("candidate_id") // subject of a personalized Cast
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  reel         Reel?         @relation(fields: [reelId], references: [id])
+  ownerUser    User?         @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  match        Match?        @relation(fields: [matchId], references: [id])
+
+  @@index([reelId])
+  @@map("casts")
+}
+
+// ---------------------------------------------------------------------------
+// Signal layer — tokens (intent currency + revenue meter)
+// ---------------------------------------------------------------------------
+
+// Owned by exactly one of: a candidate User (application tokens) or an
+// Organization (invite tokens). Source distinguishes granted vs purchased so the
+// revenue line is queryable from day one.
+model Token {
+  id             String      @id @default(cuid())
+  userId         String?     @map("user_id")
+  organizationId String?     @map("organization_id")
+  type           TokenType
+  status         TokenStatus @default(active)
+  source         TokenSource @default(monthly_grant)
+  spentOn        String?     @map("spent_on") // target id (Match/Role/Profile)
+  stripeRef      String?     @map("stripe_ref") // payment/checkout reference for purchased tokens
+  createdAt      DateTime    @default(now()) @map("created_at")
+  expiresAt      DateTime?   @map("expires_at") // loss aversion, used honestly (factual expiry only)
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([organizationId, status])
+  @@map("tokens")
+}
+
+// ---------------------------------------------------------------------------
+// The connection object — where Full Spectrum scoring lands
+// ---------------------------------------------------------------------------
+
+model Match {
+  id             String      @id @default(cuid())
+  candidateId    String      @map("candidate_id")
+  organizationId String      @map("organization_id")
+  roleId         String?     @map("role_id")
+  fitScore       Float?      @map("fit_score")
+  fitBreakdown   Json?       @map("fit_breakdown") // per-dimension scores + plain-language why + honest gaps
+  status         MatchStatus @default(suggested)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  candidate    User         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role?        @relation(fields: [roleId], references: [id])
+  casts        Cast[]
+
+  @@unique([candidateId, organizationId, roleId])
+  @@index([candidateId, status])
+  @@index([organizationId, status])
+  @@map("matches")
+}
+
+// ---------------------------------------------------------------------------
+// Path Discovery (Feature 2.1, hero feature) — persist suggestions + the "no"
+// ---------------------------------------------------------------------------
+
+model PathSuggestion {
+  id          String     @id @default(cuid())
+  candidateId String     @map("candidate_id")
+  pathKey     String     @map("path_key") // stable key for the suggested career path
+  title       String
+  reasoning   String? // the "why this fits" shown at a moderate level
+  fitScore    Float?     @map("fit_score")
+  status      PathStatus @default(suggested)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  decidedAt   DateTime?  @map("decided_at")
+
+  candidate User @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, status])
+  @@map("path_suggestions")
+}
+
+// ---------------------------------------------------------------------------
+// The flywheel — log generously from day one
+// ---------------------------------------------------------------------------
+
+// eventType is an open String on purpose: new event types must NOT require a
+// migration, or the data layer stops being the flywheel. Validate in app code.
+model Event {
+  id        String   @id @default(cuid())
+  actorId   String   @map("actor_id")
+  eventType String   @map("event_type")
+  targetId  String?  @map("target_id")
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([eventType, timestamp])
+  @@index([actorId, timestamp])
+  @@index([targetId])
+  @@map("events")
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String              @map("user_id")
+  type      String
+  channel   NotificationChannel
+  payload   Json?
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// ---------------------------------------------------------------------------
+// ERAP / advocacy layer (its own objects so influencers/champions extend cleanly)
+// ---------------------------------------------------------------------------
+
+model Advocate {
+  id             String         @id @default(cuid())
+  userId         String?        @unique @map("user_id") // may be external (null user)
+  email          String
+  type           AdvocateType
+  organizationId String?        @map("organization_id")
+  status         AdvocateStatus @default(active)
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  shareLinks   ShareLink[]
+  captureLeads CaptureLead[] // people this advocate/champion brought in (Feature 8.1)
+
+  @@map("advocates")
+}
+
+model ShareLink {
+  id             String   @id @default(cuid())
+  advocateId     String   @map("advocate_id")
+  reelId         String?  @map("reel_id")
+  organizationId String?  @map("organization_id")
+  shortUrl       String   @unique @map("short_url")
+  trackingParams Json?    @map("tracking_params")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  advocate          Advocate           @relation(fields: [advocateId], references: [id], onDelete: Cascade)
+  reel              Reel?              @relation(fields: [reelId], references: [id], onDelete: SetNull)
+  organization      Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  attributionEvents AttributionEvent[]
+
+  @@map("share_links")
+}
+
+model AttributionEvent {
+  id           String   @id @default(cuid())
+  shareLinkId  String   @map("share_link_id")
+  eventType    String   @map("event_type") // click | profile_created | applied | hired
+  subjectEmail String?  @map("subject_email")
+  timestamp    DateTime @default(now())
+
+  shareLink ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+
+  @@index([shareLinkId])
+  @@map("attribution_events")
+}
+
+// ---------------------------------------------------------------------------
+// Owned capture & digest (Feature 8.2) — opt-in BEFORE an account exists
+// ---------------------------------------------------------------------------
+
+model CaptureLead {
+  id                 String   @id @default(cuid())
+  email              String?
+  phone              String?
+  source             String? // QR code id, campaign, "tap-at-transition", etc.
+  referredByAdvocate String?  @map("referred_by_advocate") // Advocate.id (Champion on-ramp)
+  optedInAt          DateTime @default(now()) @map("opted_in_at")
+  convertedUserId    String?  @map("converted_user_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  advocate      Advocate? @relation(fields: [referredByAdvocate], references: [id], onDelete: SetNull)
+  convertedUser User?     @relation(fields: [convertedUserId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([phone])
+  @@map("capture_leads")
+}

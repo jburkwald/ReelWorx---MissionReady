@@ -1,0 +1,14 @@
+{
+  "name": "@reelworx/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "comment": "Placeholder. Claude Code: scaffold an Expo (React Native) app here for the candidate/veteran experience — see /CLAUDE.md and /docs/DESIGN_LANGUAGE.md before building UI. This app consumes @reelworx/shared for types, theme tokens, and the Prisma client.",
+  "scripts": {
+    "dev": "expo start",
+    "build": "expo export",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@reelworx/shared": "*"
+  }
+}
