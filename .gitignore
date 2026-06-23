@@ -10,3 +10,6 @@ dist/
 ios/
 android/
 .vercel/
+
+# Prisma 7 generated client (regenerated via `npm run db:generate`)
+packages/shared/src/generated/

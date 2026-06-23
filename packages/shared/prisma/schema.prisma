@@ -10,12 +10,14 @@
 // flagged with `// OPEN DECISION` and are trivially changeable.
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Prisma 7: connection URL lives in prisma.config.ts (CLI) and is passed to the
+  // PrismaClient constructor via the pg driver adapter (see src/server/db.ts).
 }
 
 // ---------------------------------------------------------------------------
