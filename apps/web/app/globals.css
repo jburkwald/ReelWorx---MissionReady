@@ -1,0 +1,160 @@
+/* ReelWorx NextMission — web (company side).
+ *
+ * Design language: Apple structure governs the day-to-day (calm neutrals, generous
+ * whitespace, restrained type), Spotify Wrapped governs the few brand/celebration
+ * moments (the spectrum gradient, oversized display type). These CSS variables
+ * mirror packages/shared/src/theme/tokens.ts — keep them in sync.
+ */
+
+:root {
+  /* Spectrum (Wrapped energy — used sparingly, for brand + milestone moments) */
+  --spectrum-red: #ff3b30;
+  --spectrum-orange: #ff9500;
+  --spectrum-yellow: #ffd60a;
+  --spectrum-green: #34c759;
+  --spectrum-blue: #0a84ff;
+  --spectrum-indigo: #5e5ce6;
+  --spectrum-violet: #af52de;
+  --spectrum: linear-gradient(
+    115deg,
+    var(--spectrum-red),
+    var(--spectrum-orange),
+    var(--spectrum-yellow),
+    var(--spectrum-green),
+    var(--spectrum-blue),
+    var(--spectrum-indigo),
+    var(--spectrum-violet)
+  );
+
+  /* Neutrals (Apple structure — the calm default everywhere) */
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-050: #f7f7f8;
+  --gray-100: #ededef;
+  --gray-400: #9a9aa0;
+  --gray-700: #3c3c43;
+  --gray-900: #1c1c1e;
+
+  --accent: var(--spectrum-blue);
+
+  /* Type — locked ReelWorx pairing, loaded via next/font in layout.tsx */
+  --font-display: 'Bebas Neue', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  --maxw: 1080px;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--gray-900);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Display type — Bebas Neue, for headline / Wrapped moments only. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+/* The one signature brand treatment: spectrum gradient text. Use rarely. */
+.spectrum-text {
+  background: var(--spectrum);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.spectrum-bar {
+  height: 4px;
+  width: 100%;
+  background: var(--spectrum);
+  border-radius: var(--radius-full);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Buttons — Apple-calm primary, with a restrained spectrum option for key CTAs. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.18s var(--ease-spring), opacity 0.18s ease,
+    background 0.18s ease;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--black);
+  color: var(--white);
+}
+.btn-primary:hover {
+  opacity: 0.88;
+}
+.btn-spectrum {
+  background: var(--spectrum);
+  color: var(--white);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-900);
+  border-color: var(--gray-100);
+}
+.btn-ghost:hover {
+  background: var(--gray-050);
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-100);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+
+.muted {
+  color: var(--gray-400);
+}
