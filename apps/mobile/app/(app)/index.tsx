@@ -1,5 +1,6 @@
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import {
   Body,
@@ -10,6 +11,7 @@ import {
   Wordmark,
 } from '../../components/ui';
 import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
+import { useApi, type MeResponse } from '../../lib/api';
 
 // Candidate home (Marcus). Calm by default; the only Wrapped touch is the profile
 // strength meter — competence made visible (SDT), framed as growth, never deficiency.
@@ -18,13 +20,32 @@ export default function Home() {
   const { user } = useUser();
   const { signOut } = useAuth();
 
+  const api = useApi();
+
   const firstName =
     user?.firstName ??
     user?.primaryEmailAddress?.emailAddress?.split('@')[0] ??
     'there';
 
-  // Placeholder until the Story Profile + Full Spectrum assessment feed this.
-  const profileStrength = 8;
+  // Provision the candidate (User + Profile) on first launch and reflect their real
+  // completeness. Falls back to a gentle placeholder if the backend isn't reachable.
+  const [profileStrength, setProfileStrength] = useState(8);
+  useEffect(() => {
+    let active = true;
+    api
+      .get<MeResponse>('/me')
+      .then((r) => {
+        if (active && r.user.profile) {
+          setProfileStrength(r.user.profile.completenessScore);
+        }
+      })
+      .catch(() => {
+        /* backend not reachable yet — keep the placeholder */
+      });
+    return () => {
+      active = false;
+    };
+  }, [api]);
 
   return (
     <Screen>
