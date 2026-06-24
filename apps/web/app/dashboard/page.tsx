@@ -185,6 +185,15 @@ function Workspace({
             See insights →
           </p>
         </Link>
+        <Link href="/dashboard/champions" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-red)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Champion on-ramp</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Give TAP/VA/USO counselors an invite link and QR — and trace who they bring in.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-red)' }}>
+            Manage champions →
+          </p>
+        </Link>
         <div className="card">
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
           <p className="muted" style={{ margin: 0 }}>

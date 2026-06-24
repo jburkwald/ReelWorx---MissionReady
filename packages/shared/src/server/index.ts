@@ -90,3 +90,18 @@ export {
   type RecentReachOut,
   type InterestedCompany,
 } from './dashboard';
+export {
+  ensureAdvocateForUser,
+  createShareLink,
+  recordShareClick,
+  getAdvocateImpact,
+  type CreateShareLinkInput,
+  type AdvocateImpact,
+} from './advocacy';
+export {
+  createChampion,
+  listChampions,
+  getChampionLanding,
+  captureFromChampion,
+  type ChampionView,
+} from './champions';
