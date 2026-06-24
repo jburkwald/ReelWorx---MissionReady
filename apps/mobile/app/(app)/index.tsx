@@ -32,6 +32,7 @@ export default function Home() {
   // Provision the candidate (User + Profile) on first launch and reflect their real
   // completeness. Falls back to a gentle placeholder if the backend isn't reachable.
   const [profileStrength, setProfileStrength] = useState(8);
+  const [inviteCount, setInviteCount] = useState(0);
   useEffect(() => {
     let active = true;
     api
@@ -44,6 +45,13 @@ export default function Home() {
       .catch(() => {
         /* backend not reachable yet — keep the placeholder */
       });
+    // Who's reaching out — being pursued is a moment worth surfacing up top.
+    api
+      .get<{ invites: { matchId: string }[] }>('/invites')
+      .then((r) => {
+        if (active) setInviteCount(r.invites.length);
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -73,6 +81,30 @@ export default function Home() {
             where you go next.
           </Body>
         </View>
+
+        {/* Being pursued is a genuine milestone — surface it loud, up top. */}
+        {inviteCount > 0 ? (
+          <Pressable
+            onPress={() => router.push('/(app)/invites')}
+            style={({ pressed }) => [{ borderRadius: radius.lg, overflow: 'hidden', opacity: pressed ? 0.92 : 1 }]}
+          >
+            <LinearGradient
+              colors={spectrumColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ padding: spacing.lg }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#fff' }}>
+                {inviteCount === 1
+                  ? 'A company wants to connect with you'
+                  : `${inviteCount} companies want to connect with you`}
+              </Text>
+              <Text style={{ marginTop: 4, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+                Tap to see who reached out ›
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        ) : null}
 
         {/* Profile strength meter — the calm Wrapped moment. */}
         <View

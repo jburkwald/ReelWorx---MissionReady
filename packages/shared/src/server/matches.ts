@@ -35,11 +35,15 @@ export interface CandidateSummary {
   completenessScore: number;
 }
 
+export type MatchStatusView = 'suggested' | 'applied' | 'invited' | 'connected' | 'passed';
+
 export interface SuggestedMatch {
   matchId: string | null; // null until persisted (preview ranking)
   candidate: CandidateSummary;
   breakdown: FitBreakdown;
   tier: FitTier;
+  /** Where this match sits in the funnel — drives the "Reach out" vs "Invited" UI. */
+  status: MatchStatusView;
 }
 
 const DEFAULT_LIMIT = 10;
@@ -146,6 +150,7 @@ export async function suggestMatchesForRole(
       candidate: summarize(p, p.user, decoded),
       breakdown,
       tier: fitTier(breakdown.overall),
+      status: match.status as MatchStatusView,
     });
   }
 
@@ -178,6 +183,7 @@ export async function getMatchesForRole(
         candidate: summarize(profile, m.candidate, decoded),
         breakdown,
         tier: fitTier(breakdown.overall),
+        status: m.status as MatchStatusView,
       };
     });
 }

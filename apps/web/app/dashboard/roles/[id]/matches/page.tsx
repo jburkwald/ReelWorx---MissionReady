@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {
   getMatchesForRole,
+  getReadyInviteBalance,
   getRole,
   prisma,
   type SuggestedMatch,
@@ -11,7 +12,7 @@ import {
   type FitDimension,
   type IdealProfile,
 } from '@reelworx/shared';
-import { runFitReadAction } from './actions';
+import { reachOutAction, runFitReadAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +43,14 @@ export default async function RoleMatchesPage({
 
   let role: Awaited<ReturnType<typeof getRole>> = null;
   let matches: SuggestedMatch[] = [];
+  let balance = 0;
   let dbDown = false;
   try {
     role = await getRole(prisma, id);
-    if (role) matches = await getMatchesForRole(prisma, id);
+    if (role) {
+      matches = await getMatchesForRole(prisma, id);
+      balance = await getReadyInviteBalance(prisma, role.organizationId);
+    }
   } catch {
     dbDown = true;
   }
@@ -90,11 +95,22 @@ export default async function RoleMatchesPage({
               same five dimensions on both sides, honest about the gaps.
             </p>
           </div>
-          <form action={runForRole}>
-            <button type="submit" className={matches.length ? 'btn btn-ghost' : 'btn btn-spectrum'}>
-              {matches.length ? 'Refresh the Fit Read' : 'Run the Fit Read'}
-            </button>
-          </form>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {!dbDown ? (
+              <span
+                className="muted"
+                style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}
+                title="Your monthly outreach allotment. Spent deliberately — reaching out should mean something."
+              >
+                {balance} outreach {balance === 1 ? 'token' : 'tokens'}
+              </span>
+            ) : null}
+            <form action={runForRole}>
+              <button type="submit" className={matches.length ? 'btn btn-ghost' : 'btn btn-spectrum'}>
+                {matches.length ? 'Refresh the Fit Read' : 'Run the Fit Read'}
+              </button>
+            </form>
+          </div>
         </div>
 
         {dbDown ? (
@@ -117,7 +133,13 @@ export default async function RoleMatchesPage({
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
             {matches.map((m) => (
-              <MatchCard key={m.candidate.candidateId} match={m} constrained={constrained} />
+              <MatchCard
+                key={m.candidate.candidateId}
+                match={m}
+                constrained={constrained}
+                roleId={id}
+                balance={balance}
+              />
             ))}
           </div>
         )}
@@ -129,11 +151,16 @@ export default async function RoleMatchesPage({
 function MatchCard({
   match,
   constrained,
+  roleId,
+  balance,
 }: {
   match: SuggestedMatch;
   constrained: FitDimension[];
+  roleId: string;
+  balance: number;
 }) {
-  const { candidate, breakdown, tier } = match;
+  const { candidate, breakdown, tier, status } = match;
+  const invited = status === 'invited' || status === 'connected';
   return (
     <div className="card" style={{ maxWidth: 760 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
@@ -251,6 +278,29 @@ function MatchCard({
           <strong style={{ color: 'var(--gray-700)' }}>Decoded:</strong> {candidate.mosTranslation}
         </p>
       ) : null}
+
+      {/* Intentful reach — spending a token is the deliberate act that makes the
+          connection mean something (and gives the candidate the "I'm wanted" moment). */}
+      <div style={{ marginTop: 18, borderTop: '1px solid var(--gray-100)', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        {invited ? (
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--spectrum-green)' }}>
+            ✓ You’ve reached out — they’ll see your interest
+          </span>
+        ) : match.matchId && balance > 0 ? (
+          <>
+            <span className="muted" style={{ fontSize: 13 }}>
+              Costs 1 outreach token — make it count.
+            </span>
+            <form action={reachOutAction.bind(null, roleId, match.matchId)}>
+              <button type="submit" className="btn btn-spectrum">Reach out</button>
+            </form>
+          </>
+        ) : (
+          <span className="muted" style={{ fontSize: 13 }}>
+            Out of outreach tokens this month — your allotment refreshes next month.
+          </span>
+        )}
+      </div>
     </div>
   );
 }

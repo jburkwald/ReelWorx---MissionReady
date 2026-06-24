@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { BRAND } from '@reelworx/shared';
+import { getReadyInviteBalance, prisma } from '@reelworx/shared/server';
 import { getOrProvisionUser } from '../../lib/db-user';
 import { createOrganization } from './actions';
 
@@ -19,6 +20,15 @@ export default async function DashboardPage() {
 
   const org = dbUser?.organizationAdmins[0]?.organization ?? null;
   const greeting = dbUser?.email?.split('@')[0] ?? 'there';
+
+  let tokenBalance = 0;
+  if (org) {
+    try {
+      tokenBalance = await getReadyInviteBalance(prisma, org.id);
+    } catch {
+      /* leave at 0 if the token grant can't be read */
+    }
+  }
 
   return (
     <main style={{ minHeight: '100dvh', background: 'var(--gray-050)' }}>
@@ -46,7 +56,7 @@ export default async function DashboardPage() {
         ) : !org ? (
           <PlantFlag greeting={greeting} />
         ) : (
-          <Workspace orgName={org.name} greeting={greeting} />
+          <Workspace orgName={org.name} greeting={greeting} tokenBalance={tokenBalance} />
         )}
 
         {dbUser ? (
@@ -116,7 +126,15 @@ function PlantFlag({ greeting }: { greeting: string }) {
   );
 }
 
-function Workspace({ orgName, greeting }: { orgName: string; greeting: string }) {
+function Workspace({
+  orgName,
+  greeting,
+  tokenBalance,
+}: {
+  orgName: string;
+  greeting: string;
+  tokenBalance: number;
+}) {
   return (
     <>
       <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Welcome, {greeting}.</h1>
@@ -152,10 +170,13 @@ function Workspace({ orgName, greeting }: { orgName: string; greeting: string })
         <div className="card">
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
           <p className="muted" style={{ margin: 0 }}>
-            Your monthly allotment. Spend them deliberately.
+            Your monthly allotment. Spend them deliberately — reaching out should mean something.
           </p>
-          <p className="muted" style={{ marginTop: 14, fontSize: 12, letterSpacing: '0.04em' }}>
-            COMING IN THE NEXT BUILD PHASE
+          <p style={{ marginTop: 14, fontSize: 28, fontWeight: 800 }}>
+            {tokenBalance}{' '}
+            <span className="muted" style={{ fontSize: 14, fontWeight: 600 }}>
+              left this month
+            </span>
           </p>
         </div>
       </div>
