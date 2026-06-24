@@ -213,7 +213,40 @@ function MatchCard({
         )}
       </div>
 
-      {candidate.mosTranslation ? (
+      {candidate.decoded ? (
+        <div style={{ marginTop: 18, borderTop: '1px solid var(--gray-100)', paddingTop: 14 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--gray-700)', textTransform: 'uppercase' }}>
+            Decoded credibility — the employer’s read
+          </span>
+          <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6 }}>
+            {candidate.decoded.businessSummary}
+          </p>
+          {candidate.decoded.proofSignals.length ? (
+            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {candidate.decoded.proofSignals.map((s, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: 13,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    background: 'var(--gray-050)',
+                    border: '1px solid var(--gray-100)',
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {candidate.decoded.valuesFit ? (
+            <p className="muted" style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+              <strong style={{ color: 'var(--gray-700)' }}>What drives them:</strong>{' '}
+              {candidate.decoded.valuesFit}
+            </p>
+          ) : null}
+        </div>
+      ) : candidate.mosTranslation ? (
         <p className="muted" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.5 }}>
           <strong style={{ color: 'var(--gray-700)' }}>Decoded:</strong> {candidate.mosTranslation}
         </p>

@@ -15,7 +15,9 @@
 import { scoreFit, normalizeFitProfile } from '../fit/score';
 import { fitTier, type FitTier } from '../fit/score';
 import type { FitBreakdown, IdealProfile } from '../types/fit';
+import type { DecodedCredibility } from '../types/credibility';
 import { buildFitRead } from './narrate';
+import { ensureDecodedCredibility } from './decode';
 import { EVENT_TYPES, logEvent } from './events';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 
@@ -28,6 +30,8 @@ export interface CandidateSummary {
   hometown: string | null;
   currentLocation: string | null;
   mosTranslation: string | null;
+  /** The employer's read — service record decoded into business language (Feature 2.7). */
+  decoded: DecodedCredibility | null;
   completenessScore: number;
 }
 
@@ -47,6 +51,7 @@ const candidateInclude = {
 function summarize(
   profile: { headline: string | null; mosTranslation: string | null; completenessScore: number },
   user: { id: string; email: string; hometown: string | null; currentLocation: string | null },
+  decoded: DecodedCredibility | null,
 ): CandidateSummary {
   return {
     candidateId: user.id,
@@ -55,6 +60,7 @@ function summarize(
     hometown: user.hometown,
     currentLocation: user.currentLocation,
     mosTranslation: profile.mosTranslation,
+    decoded,
     completenessScore: profile.completenessScore,
   };
 }
@@ -95,10 +101,14 @@ export async function suggestMatchesForRole(
 
   const results: SuggestedMatch[] = [];
   for (const { p, candidate } of ranked) {
+    // The employer's read of this person — generated once, cached on the Profile,
+    // reused across every role they're matched to.
+    const decoded = await ensureDecodedCredibility(prisma, p, { hometown: p.user.hometown });
+
     const breakdown = await buildFitRead(candidate, ideal, {
       roleTitle: role.title,
       candidateHeadline: p.headline,
-      mosTranslation: p.mosTranslation,
+      mosTranslation: decoded.businessSummary,
     });
 
     // Upsert: refresh the cached read on re-run, but never downgrade status — a Match
@@ -133,7 +143,7 @@ export async function suggestMatchesForRole(
 
     results.push({
       matchId: match.id,
-      candidate: summarize(p, p.user),
+      candidate: summarize(p, p.user, decoded),
       breakdown,
       tier: fitTier(breakdown.overall),
     });
@@ -162,9 +172,10 @@ export async function getMatchesForRole(
     .map((m) => {
       const breakdown = m.fitBreakdown as unknown as FitBreakdown;
       const profile = m.candidate.profile!;
+      const decoded = (profile.decodedCredibility ?? null) as DecodedCredibility | null;
       return {
         matchId: m.id,
-        candidate: summarize(profile, m.candidate),
+        candidate: summarize(profile, m.candidate, decoded),
         breakdown,
         tier: fitTier(breakdown.overall),
       };

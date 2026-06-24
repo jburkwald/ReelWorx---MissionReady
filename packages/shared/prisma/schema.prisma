@@ -135,7 +135,8 @@ model Profile {
   videoIntroAssetId     String?           @map("video_intro_asset_id") // provider-agnostic (Mux/Cloudinary asset id)
   headline              String?
   mosCode               String?           @map("mos_code")
-  mosTranslation        String?           @map("mos_translation") // Decoded Credibility (Feature 2.7)
+  mosTranslation        String?           @map("mos_translation") // plain-text business summary for the ATS render (Feature 2.7)
+  decodedCredibility    Json?             @map("decoded_credibility") // structured employer read (Feature 2.7): business summary + proof signals + values fit. Per-candidate + cached (role-independent). mosTranslation mirrors its summary string.
   fitProfile            Json?             @map("fit_profile") // five-dimension shape; mirrors Role.idealProfile. Brand display name ("Full Spectrum", pending TM) lives in packages/shared, not here.
   completenessScore     Int               @default(0) @map("completeness_score") // profile-strength meter (goal-gradient)
   openToRelocate        Boolean           @default(false) @map("open_to_relocate")

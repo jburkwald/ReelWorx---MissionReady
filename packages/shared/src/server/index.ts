@@ -45,3 +45,8 @@ export {
   type CandidateSummary,
   type SuggestedMatch,
 } from './matches';
+export {
+  decodeCredibility,
+  ensureDecodedCredibility,
+  type DecodeInput,
+} from './decode';
