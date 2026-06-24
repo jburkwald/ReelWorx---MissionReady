@@ -167,6 +167,15 @@ function Workspace({
             Read the fit →
           </p>
         </Link>
+        <Link href="/dashboard/people" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-green)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Find people</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Search by skill and filter by hometown roots — bring talent back to your region.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-green)' }}>
+            Come-home search →
+          </p>
+        </Link>
         <div className="card">
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
           <p className="muted" style={{ margin: 0 }}>

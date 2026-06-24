@@ -71,3 +71,14 @@ export {
   type ReachOutStatus,
   type InviteView,
 } from './reach';
+export {
+  setRoots,
+  listRoots,
+  type RootInput,
+  type RootView,
+} from './roots';
+export {
+  searchCandidates,
+  type PeopleSearchResult,
+  type SearchCandidatesInput,
+} from './search';

@@ -219,6 +219,31 @@ export default function Home() {
           </Text>
         </Pressable>
 
+        {/* Roots — "Come Home": let companies in your region find you (3.3). */}
+        <Pressable
+          onPress={() => router.push('/(app)/roots')}
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.gray050,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: radius.lg,
+              padding: spacing.lg,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>
+              Set your roots
+            </Text>
+            <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
+          </View>
+          <Text style={{ marginTop: 4, fontSize: 14, color: colors.textMuted }}>
+            Where you’re tied to — so companies can bring you home after service.
+          </Text>
+        </Pressable>
+
         {/* Path Discovery — the hero feature: directions you never pictured (2.1). */}
         <Pressable
           onPress={() => router.push('/(app)/paths')}
