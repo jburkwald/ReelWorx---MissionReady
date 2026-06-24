@@ -105,6 +105,7 @@ export {
   type RecentReachOut,
   type InterestedCompany,
 } from './dashboard';
+export { getPublicProfile, type PublicProfile } from './public-profile';
 export {
   ensureAdvocateForUser,
   createShareLink,

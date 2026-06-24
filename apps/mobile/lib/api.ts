@@ -7,6 +7,10 @@ import { useMemo } from 'react';
 // Bearer header so the API can authenticate the request.
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
+// The web origin (API base minus the trailing /api) — used to build public share links
+// like the candidate's story profile (Feature 1.3).
+export const WEB_URL = API_URL.replace(/\/api\/?$/, '');
+
 export function useApi() {
   const { getToken } = useAuth();
   return useMemo(

@@ -91,6 +91,7 @@ export interface InterestedCompany {
 }
 
 export interface CandidateDashboard {
+  candidateId: string; // for building the public profile share link (Feature 1.3)
   completenessScore: number;
   interestedCount: number;
   interested: InterestedCompany[];
@@ -118,6 +119,7 @@ export async function getCandidateDashboard(
   const fit = (profile?.fitProfile ?? {}) as { personality?: Record<string, unknown> };
 
   return {
+    candidateId: userId,
     completenessScore: profile?.completenessScore ?? 0,
     interestedCount: interestedRows.length,
     interested: interestedRows.map((m) => ({

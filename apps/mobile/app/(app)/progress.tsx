@@ -1,13 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { Body, GhostButton, Heading, Screen } from '../../components/ui';
 import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
-import { useApi } from '../../lib/api';
+import { useApi, WEB_URL } from '../../lib/api';
 
 // Mirrors shared/server CandidateDashboard — kept local (mobile stays server-free).
 interface CandidateDashboard {
+  candidateId: string;
   completenessScore: number;
   interestedCount: number;
   interested: { organizationName: string; roleTitle: string | null }[];
@@ -42,6 +43,15 @@ export default function Progress() {
   }, [api]);
 
   const nextStep = data ? suggestNextStep(data) : null;
+
+  async function shareProfile() {
+    if (!data) return;
+    const url = `${WEB_URL}/p/${data.candidateId}`;
+    await Share.share({
+      message: `My story, not a résumé — here's who I am and where I'm headed: ${url}`,
+      url,
+    });
+  }
 
   return (
     <Screen>
@@ -90,6 +100,24 @@ export default function Progress() {
                 />
               </View>
             </View>
+
+            {/* One Profile, Two Outputs (1.3) — your story link IS your new résumé. */}
+            <Pressable
+              onPress={shareProfile}
+              style={({ pressed }) => [{ borderRadius: radius.lg, overflow: 'hidden', opacity: pressed ? 0.92 : 1 }]}
+            >
+              <LinearGradient
+                colors={spectrumColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ padding: spacing.lg }}
+              >
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff' }}>Share your profile</Text>
+                <Text style={{ marginTop: 4, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+                  One link that tells your whole story — and a clean résumé version that passes the filters.
+                </Text>
+              </LinearGradient>
+            </Pressable>
 
             {/* Who's interested. */}
             <View style={{ gap: spacing.md }}>
