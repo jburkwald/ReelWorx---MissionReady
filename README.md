@@ -9,6 +9,7 @@ A human-connection platform for veterans, civilians, and the companies who want 
 3. Read `/docs/DATA_MODEL.md`, `/docs/DESIGN_LANGUAGE.md`, and `/docs/BEHAVIORAL_DESIGN.md` before writing product code.
 4. `cp .env.example .env` and fill in the keys below.
 5. `npm install` at the root, then run an app (see **Running the apps**).
+6. To publish + test against real services, follow [`/docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Structure
 
