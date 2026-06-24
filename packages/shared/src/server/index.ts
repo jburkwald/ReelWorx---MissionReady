@@ -59,6 +59,12 @@ export {
 } from './paths';
 export { getOrCreatePathDetail } from './path-detail';
 export {
+  createStudioReel,
+  listStudioReels,
+  type CreateStudioReelInput,
+  type StudioReelView,
+} from './studio';
+export {
   MONTHLY_INVITE_ALLOTMENT,
   ensureMonthlyInviteTokens,
   getInviteBalance,

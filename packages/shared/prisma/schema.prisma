@@ -260,6 +260,7 @@ model Reel {
   roleId         String?  @map("role_id")
   themeId        String?  @map("theme_id") // Story Studio theme (assembly, not generation)
   title          String?
+  caption        String? // the one generative slot the theme frames (Feature 5.1)
   videoUrl       String?  @map("video_url")
   videoAssetId   String?  @map("video_asset_id") // provider-agnostic
   videoProvider  String?  @map("video_provider") // "mux" | "cloudinary" — set once chosen

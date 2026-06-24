@@ -203,6 +203,15 @@ function Workspace({
             Manage alerts →
           </p>
         </Link>
+        <Link href="/dashboard/studio" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-orange)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Story Studio <span className="muted" style={{ fontSize: 12, fontWeight: 600 }}>Beta</span></h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Make your own story Reels from polished themes — drop in footage or a link.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-orange)' }}>
+            Open the studio →
+          </p>
+        </Link>
         <div className="card">
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
           <p className="muted" style={{ margin: 0 }}>
