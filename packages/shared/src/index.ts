@@ -10,6 +10,7 @@ export * from './theme/tokens';
 export * from './types/domain';
 export * from './types/fit';
 export * from './types/credibility';
+export * from './types/paths';
 export * from './fit/score';
 export * from './story/types';
 export * from './story/completeness';

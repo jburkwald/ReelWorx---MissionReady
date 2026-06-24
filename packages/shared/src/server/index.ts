@@ -57,6 +57,7 @@ export {
   type PathView,
   type PathDecision,
 } from './paths';
+export { getOrCreatePathDetail } from './path-detail';
 export {
   MONTHLY_INVITE_ALLOTMENT,
   ensureMonthlyInviteTokens,

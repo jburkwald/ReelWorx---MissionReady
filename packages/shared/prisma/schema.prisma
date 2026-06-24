@@ -365,6 +365,7 @@ model PathSuggestion {
   title       String
   reasoning   String? // the "why this fits" shown at a moderate level
   fitScore    Float?     @map("fit_score")
+  detail      Json? // Resource Hub explainer + Gaps & the Bridge (Features 2.3/2.4), generated on demand + cached
   status      PathStatus @default(suggested)
   createdAt   DateTime   @default(now()) @map("created_at")
   decidedAt   DateTime?  @map("decided_at")

@@ -70,6 +70,10 @@ export default function Paths() {
     }
   }
 
+  function openDetail(p: PathView) {
+    router.push({ pathname: '/(app)/path/[id]', params: { id: p.id, title: p.title } });
+  }
+
   const saved = paths.filter((p) => p.status === 'saved');
   const open = paths.filter((p) => p.status === 'suggested');
 
@@ -108,7 +112,7 @@ export default function Paths() {
               <View style={{ gap: spacing.md }}>
                 <SectionLabel>Saved</SectionLabel>
                 {saved.map((p) => (
-                  <PathCard key={p.id} path={p} deciding={decidingId === p.id} onDecide={decide} />
+                  <PathCard key={p.id} path={p} deciding={decidingId === p.id} onDecide={decide} onOpen={openDetail} />
                 ))}
               </View>
             ) : null}
@@ -116,7 +120,7 @@ export default function Paths() {
             <View style={{ gap: spacing.md }}>
               {saved.length > 0 ? <SectionLabel>Worth exploring</SectionLabel> : null}
               {open.map((p) => (
-                <PathCard key={p.id} path={p} deciding={decidingId === p.id} onDecide={decide} />
+                <PathCard key={p.id} path={p} deciding={decidingId === p.id} onDecide={decide} onOpen={openDetail} />
               ))}
             </View>
 
@@ -140,10 +144,12 @@ function PathCard({
   path,
   deciding,
   onDecide,
+  onOpen,
 }: {
   path: PathView;
   deciding: boolean;
   onDecide: (id: string, decision: 'saved' | 'rejected') => void;
+  onOpen: (path: PathView) => void;
 }) {
   const isSaved = path.status === 'saved';
   const strong = (path.fitScore ?? 0) >= 80;
@@ -182,6 +188,12 @@ function PathCard({
       {path.reasoning ? (
         <Text style={{ fontSize: 15, lineHeight: 22, color: colors.text }}>{path.reasoning}</Text>
       ) : null}
+
+      <Pressable onPress={() => onOpen(path)} style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
+        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.accent }}>
+          What it involves & my gaps ›
+        </Text>
+      </Pressable>
 
       {isSaved ? (
         <Text style={{ fontSize: 14, fontWeight: '700', color: colors.green }}>★ Saved</Text>
