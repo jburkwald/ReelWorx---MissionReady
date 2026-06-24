@@ -19,7 +19,16 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ReelWorx uses your library so you can choose a short intro video.",
+          "cameraPermission": "ReelWorx uses the camera so you can record your intro video.",
+          "microphonePermission": "ReelWorx uses the microphone so your intro video has sound."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

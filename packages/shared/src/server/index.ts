@@ -23,6 +23,11 @@ export {
   type SaveAssessmentResult,
 } from './assessment';
 export {
+  createIntroVideoUpload,
+  saveIntroVideo,
+  type SaveIntroVideoResult,
+} from './intro-video';
+export {
   deriveIdealProfile,
   createRole,
   listRolesForOrg,

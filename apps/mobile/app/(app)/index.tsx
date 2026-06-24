@@ -161,6 +161,31 @@ export default function Home() {
             Optional — a deeper read on who you are. It gives your strength a real boost.
           </Text>
         </Pressable>
+
+        {/* Intro video — the first thing that shows you're a person, not a résumé (1.4). */}
+        <Pressable
+          onPress={() => router.push('/(app)/intro-video')}
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.gray050,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: radius.lg,
+              padding: spacing.lg,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>
+              Record your 60-second intro
+            </Text>
+            <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
+          </View>
+          <Text style={{ marginTop: 4, fontSize: 14, color: colors.textMuted }}>
+            A short, forward-looking hello. We give you a script — one take is plenty.
+          </Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );

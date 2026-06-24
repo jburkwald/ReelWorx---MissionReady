@@ -10,6 +10,7 @@ import type {
   DirectUpload,
   ImageUploadResult,
   MediaService,
+  UploadAsset,
   VideoPlayback,
 } from '../media/types';
 
@@ -68,6 +69,22 @@ export const media: MediaService = {
     return muxPlayback(assetId, playbackId);
   },
 
+  async getUploadAsset(uploadId): Promise<UploadAsset> {
+    const upload = await mux().video.uploads.retrieve(uploadId);
+    const assetId = upload.asset_id ?? null;
+    if (!assetId) {
+      return { assetId: null, playbackId: null, ready: false, playback: null };
+    }
+    const asset = await mux().video.assets.retrieve(assetId);
+    const playbackId = asset.playback_ids?.[0]?.id ?? null;
+    return {
+      assetId,
+      playbackId,
+      ready: asset.status === 'ready',
+      playback: playbackId ? muxPlayback(assetId, playbackId) : null,
+    };
+  },
+
   playbackFromId(assetId, playbackId): VideoPlayback {
     return muxPlayback(assetId, playbackId);
   },
@@ -87,4 +104,4 @@ export const media: MediaService = {
   },
 };
 
-export type { MediaService, DirectUpload, VideoPlayback, ImageUploadResult };
+export type { MediaService, DirectUpload, VideoPlayback, UploadAsset, ImageUploadResult };

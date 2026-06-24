@@ -65,7 +65,9 @@ export async function POST(req: Request) {
     const merged = mergeIntoProfile(profile.fitProfile, profile.whyEachMove, extraction);
 
     const completeness = computeProfileCompleteness({
-      hasIntroVideo: Boolean(profile.videoIntroUrl),
+      // Asset id is set the moment the intro video exists (even mid-encode), so credit
+      // it even before the playback URL is pinned.
+      hasIntroVideo: Boolean(profile.videoIntroUrl || profile.videoIntroAssetId),
       headline: extraction?.headline ?? profile.headline,
       skillsCount: merged.skills.length,
       valuesCount: merged.values.length,

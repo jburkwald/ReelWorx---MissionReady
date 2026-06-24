@@ -25,6 +25,16 @@ export interface VideoPlayback {
   posterUrl: string;
 }
 
+/** The asset a direct upload produced, resolved after the client finishes uploading.
+ *  assetId is null until the provider has ingested the file; playbackId/hlsUrl appear
+ *  once the asset is created, and `ready` flips true when it's fully encoded. */
+export interface UploadAsset {
+  assetId: string | null;
+  playbackId: string | null;
+  ready: boolean;
+  playback: VideoPlayback | null;
+}
+
 export interface ImageUploadResult {
   path: string;
   publicUrl: string;
@@ -35,6 +45,9 @@ export interface MediaService {
   createVideoUpload(opts?: { corsOrigin?: string }): Promise<DirectUpload>;
   /** Resolve playback info once an upload has been processed into an asset. */
   getVideoPlayback(assetId: string): Promise<VideoPlayback>;
+  /** Resolve the asset a direct upload produced (after the client finishes the PUT).
+   *  Single-shot (no server-side polling — callers/clients retry); serverless-safe. */
+  getUploadAsset(uploadId: string): Promise<UploadAsset>;
   /** Build a playback bundle directly from a known playback id (no API call). */
   playbackFromId(assetId: string, playbackId: string): VideoPlayback;
   /** Create a signed URL the client can PUT an image to (profile photo, thumbnail). */
