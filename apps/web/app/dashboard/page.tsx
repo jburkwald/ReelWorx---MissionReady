@@ -140,20 +140,24 @@ function Workspace({ orgName, greeting }: { orgName: string; greeting: string })
             Open roles →
           </p>
         </Link>
-        {[
-          ['Suggested people', 'High-intent candidates, decoded and fit-read.'],
-          ['Outreach tokens', 'Your monthly allotment. Spend them deliberately.'],
-        ].map(([t, d]) => (
-          <div className="card" key={t}>
-            <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>{t}</h3>
-            <p className="muted" style={{ margin: 0 }}>
-              {d}
-            </p>
-            <p className="muted" style={{ marginTop: 14, fontSize: 12, letterSpacing: '0.04em' }}>
-              COMING IN THE NEXT BUILD PHASE
-            </p>
-          </div>
-        ))}
+        <Link href="/dashboard/roles" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-violet)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Suggested people</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            High-intent candidates, decoded and fit-read. Open a role to see who fits.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-violet)' }}>
+            Read the fit →
+          </p>
+        </Link>
+        <div className="card">
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Your monthly allotment. Spend them deliberately.
+          </p>
+          <p className="muted" style={{ marginTop: 14, fontSize: 12, letterSpacing: '0.04em' }}>
+            COMING IN THE NEXT BUILD PHASE
+          </p>
+        </div>
       </div>
     </>
   );

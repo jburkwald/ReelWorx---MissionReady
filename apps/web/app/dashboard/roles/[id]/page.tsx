@@ -65,12 +65,17 @@ export default async function RoleDetailPage({
       </header>
 
       <section className="container" style={{ paddingTop: 40, paddingBottom: 64, display: 'grid', gap: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{role.title}</h1>
-          <p className="muted" style={{ marginTop: 6 }}>
-            {role.location ?? 'Location flexible'} ·{' '}
-            {hasVideo ? 'Video-first listing' : 'No video yet — add one for a realistic preview'}
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{role.title}</h1>
+            <p className="muted" style={{ marginTop: 6 }}>
+              {role.location ?? 'Location flexible'} ·{' '}
+              {hasVideo ? 'Video-first listing' : 'No video yet — add one for a realistic preview'}
+            </p>
+          </div>
+          <Link href={`/dashboard/roles/${role.id}/matches`} className="btn btn-spectrum">
+            See suggested people →
+          </Link>
         </div>
 
         <div className="card" style={{ maxWidth: 760 }}>

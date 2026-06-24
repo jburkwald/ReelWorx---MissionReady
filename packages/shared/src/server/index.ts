@@ -24,3 +24,14 @@ export {
   getRole,
   type CreateRoleInput,
 } from './roles';
+export {
+  buildFitRead,
+  narrateFitRead,
+  type FitReadContext,
+} from './narrate';
+export {
+  suggestMatchesForRole,
+  getMatchesForRole,
+  type CandidateSummary,
+  type SuggestedMatch,
+} from './matches';

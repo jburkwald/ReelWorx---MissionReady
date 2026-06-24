@@ -26,6 +26,46 @@ import {
 
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
+/**
+ * Coerce a loosely-shaped stored profile (e.g. Profile.fitProfile JSON, which early on
+ * only carries skills + values from the Story flow) into a complete FitProfile that is
+ * safe to score. Unmeasured dimensions default to neutral zero — so a candidate who has
+ * not yet taken the Full Spectrum assessment simply scores low on the dimensions the
+ * assessment fills, which is exactly the intended incentive ("taking it raises your fit"),
+ * not a crash. Pure and isomorphic so both apps can normalize before scoring or display.
+ */
+export function normalizeFitProfile(raw: unknown): FitProfile {
+  const p = (raw ?? {}) as Partial<FitProfile>;
+  return {
+    skillsExperience: {
+      translatedSkills: p.skillsExperience?.translatedSkills ?? [],
+      mosMapping: p.skillsExperience?.mosMapping,
+      civilianEquivalents: p.skillsExperience?.civilianEquivalents ?? [],
+    },
+    personality: {
+      extraversion: p.personality?.extraversion ?? 0,
+      conscientiousness: p.personality?.conscientiousness ?? 0,
+      openness: p.personality?.openness ?? 0,
+      agreeableness: p.personality?.agreeableness ?? 0,
+      emotionalStability: p.personality?.emotionalStability ?? 0,
+    },
+    resilienceDrive: {
+      gritScore: p.resilienceDrive?.gritScore ?? 0,
+      perseveranceIndicators: p.resilienceDrive?.perseveranceIndicators ?? [],
+    },
+    emotionalIntelligence: {
+      selfAwareness: p.emotionalIntelligence?.selfAwareness ?? 0,
+      empathy: p.emotionalIntelligence?.empathy ?? 0,
+      interpersonalSkill: p.emotionalIntelligence?.interpersonalSkill ?? 0,
+    },
+    motivationValues: {
+      coreValues: p.motivationValues?.coreValues ?? [],
+      whatDrivesThem: p.motivationValues?.whatDrivesThem,
+      roots: p.motivationValues?.roots,
+    },
+  };
+}
+
 /** Symmetric closeness on a 0-100 scale: identical → 100, far apart → 0. */
 const closeness = (a: number, b: number) => clamp(100 - Math.abs(a - b));
 
@@ -103,6 +143,23 @@ const SCORERS: Record<
 export interface ScoreFitResult extends Omit<FitBreakdown, 'plainLanguageWhy' | 'honestGaps'> {
   /** Dimensions the role constrained (the only ones counted toward `overall`). */
   constrainedDimensions: FitDimension[];
+}
+
+// "Variable, earned celebration": the Wrapped energy only fires on a genuinely strong
+// fit, so the moment stays meaningful instead of decorative. `celebratory` is the gate
+// the UI checks before reaching for the spectrum gradient; everything else stays calm.
+// `label` keeps fit-read copy out of components (same discipline as FIT_DIMENSION_LABELS).
+export interface FitTier {
+  key: 'exceptional' | 'strong' | 'promising' | 'exploratory';
+  label: string;
+  celebratory: boolean;
+}
+
+export function fitTier(overall: number): FitTier {
+  if (overall >= 85) return { key: 'exceptional', label: 'Exceptional fit', celebratory: true };
+  if (overall >= 70) return { key: 'strong', label: 'Strong fit', celebratory: false };
+  if (overall >= 50) return { key: 'promising', label: 'Promising fit', celebratory: false };
+  return { key: 'exploratory', label: 'Worth a look', celebratory: false };
 }
 
 /**
