@@ -32,8 +32,9 @@ schema (including the four most recent fields: `Profile.decodedCredibility`, the
 model, `PathSuggestion.detail`, `Reel.caption`).
 
 ```bash
-# locally, with DATABASE_URL set to the Supabase DIRECT connection string
-echo 'DATABASE_URL="postgresql://...5432/postgres"' >> .env
+# Put DATABASE_URL in packages/shared/.env (NOT the repo root — the Prisma CLI + seed run
+# from packages/shared and load .env from there). Use the Supabase DIRECT string (port 5432).
+#   packages/shared/.env →  DATABASE_URL="postgresql://...:5432/postgres"
 npm run db:push
 ```
 
