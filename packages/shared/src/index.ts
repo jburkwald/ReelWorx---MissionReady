@@ -12,6 +12,7 @@ export * from './types/fit';
 export * from './fit/score';
 export * from './story/types';
 export * from './story/completeness';
+export * from './assessment';
 export * from './api/client';
 export * from './media/types';
 export * from './validation';

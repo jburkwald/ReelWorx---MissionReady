@@ -2,7 +2,7 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import {
   Body,
   GhostButton,
@@ -136,6 +136,31 @@ export default function Home() {
             Talk it through, upload a résumé, or text — your choice.
           </Text>
         </View>
+
+        {/* Optional deeper step — earns a real strength jump (Feature 1.5). */}
+        <Pressable
+          onPress={() => router.push('/(app)/assessment')}
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.gray050,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: radius.lg,
+              padding: spacing.lg,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>
+              Take the Full Spectrum read
+            </Text>
+            <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
+          </View>
+          <Text style={{ marginTop: 4, fontSize: 14, color: colors.textMuted }}>
+            Optional — a deeper read on who you are. It gives your strength a real boost.
+          </Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );

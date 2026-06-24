@@ -9,6 +9,7 @@ import {
 } from '@reelworx/shared/server';
 import {
   computeProfileCompleteness,
+  hasAssessmentScores,
   type ProfileExtraction,
   type StoryMessage,
 } from '@reelworx/shared';
@@ -70,6 +71,9 @@ export async function POST(req: Request) {
       valuesCount: merged.values.length,
       whyEachMoveCount: merged.whyEachMove.length,
       hasFitProfile: merged.skills.length > 0 || merged.values.length > 0,
+      // Preserve assessment credit: the Story flow never writes a personality block, so
+      // its presence means the Full Spectrum Assessment was already taken.
+      hasAssessment: hasAssessmentScores(merged.fitProfile),
       chaptersCount: Array.isArray(profile.livingProfileChapters)
         ? profile.livingProfileChapters.length
         : 0,

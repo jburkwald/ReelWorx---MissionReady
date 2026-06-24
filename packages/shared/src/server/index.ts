@@ -18,6 +18,11 @@ export {
 } from './users';
 export { runStoryTurn } from './agent';
 export {
+  saveAssessment,
+  type SaveAssessmentInput,
+  type SaveAssessmentResult,
+} from './assessment';
+export {
   deriveIdealProfile,
   createRole,
   listRolesForOrg,
