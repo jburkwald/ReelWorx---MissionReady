@@ -103,10 +103,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="container" style={{ paddingBottom: 48 }}>
-        <p className="muted" style={{ fontSize: 13 }}>
+      <footer className="container" style={{ paddingBottom: 48, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <p className="muted" style={{ fontSize: 13, margin: 0 }}>
           {BRAND.product} · Made for the ones who served. Built for everyone who connects.
         </p>
+        <Link href="/join" className="muted" style={{ fontSize: 13, fontWeight: 600, textDecoration: 'underline' }}>
+          Leaving the service? Stay in the loop →
+        </Link>
       </footer>
     </main>
   );

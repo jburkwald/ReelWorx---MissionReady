@@ -120,3 +120,8 @@ export {
   captureFromChampion,
   type ChampionView,
 } from './champions';
+export {
+  captureOwnedLead,
+  buildDigest,
+  type DigestItem,
+} from './capture';
