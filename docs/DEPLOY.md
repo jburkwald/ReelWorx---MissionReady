@@ -40,6 +40,17 @@ npm run db:push
 `db:generate` runs automatically on `npm install` (postinstall), so the Prisma client is
 always present — no manual generate step.
 
+### Seed demo candidates (recommended)
+So the company-side Fit Read has people to rank on day one:
+
+```bash
+npm run db:seed   # idempotent — 5 demo candidates with full fit profiles + decoded reads
+```
+
+These carry complete five-dimension data and a cached decoded credibility, so matches score
+and render meaningfully **even before** `ANTHROPIC_API_KEY` is set. Two share roots in
+Columbus, OH — handy for demoing the "Come Home" search.
+
 ---
 
 ## 3. Environment variables (Vercel project → Settings → Environment Variables)
@@ -93,8 +104,8 @@ With `DATABASE_URL` + Clerk + Anthropic set:
 
 (Steps 3–4 need `ANTHROPIC_API_KEY`; everything else needs only DB + Clerk.)
 
-There won't be candidates to match until some exist — create a candidate by signing in to the
-mobile app (step 6) or seed a `Profile` row directly.
+If you ran `npm run db:seed`, five demo candidates are already there to rank. Otherwise,
+create one by signing in to the mobile app (step 6) or seed directly.
 
 ---
 

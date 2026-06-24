@@ -22,6 +22,7 @@
     "postinstall": "prisma generate",
     "generate": "prisma generate",
     "push": "prisma db push",
+    "seed": "tsx prisma/seed.ts",
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
     "build": "tsc --noEmit",
@@ -42,6 +43,7 @@
     "@types/pg": "^8.11.0",
     "dotenv": "^16.4.0",
     "prisma": "^7.8.0",
+    "tsx": "^4.19.0",
     "typescript": "~6.0.3"
   }
 }
