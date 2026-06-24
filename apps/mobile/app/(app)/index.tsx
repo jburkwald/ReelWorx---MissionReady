@@ -186,6 +186,35 @@ export default function Home() {
             A short, forward-looking hello. We give you a script — one take is plenty.
           </Text>
         </Pressable>
+
+        {/* Path Discovery — the hero feature: directions you never pictured (2.1). */}
+        <Pressable
+          onPress={() => router.push('/(app)/paths')}
+          style={({ pressed }) => [
+            {
+              borderRadius: radius.lg,
+              overflow: 'hidden',
+              opacity: pressed ? 0.92 : 1,
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={spectrumColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ padding: spacing.lg }}
+          >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff' }}>
+                Discover your paths
+              </Text>
+              <Text style={{ fontSize: 22, color: '#fff' }}>›</Text>
+            </View>
+            <Text style={{ marginTop: 4, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+              Careers you might never have pictured — built from who you actually are.
+            </Text>
+          </LinearGradient>
+        </Pressable>
       </ScrollView>
     </Screen>
   );

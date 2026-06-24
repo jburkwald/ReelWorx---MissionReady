@@ -50,3 +50,10 @@ export {
   ensureDecodedCredibility,
   type DecodeInput,
 } from './decode';
+export {
+  generatePathSuggestions,
+  listPathSuggestions,
+  decidePathSuggestion,
+  type PathView,
+  type PathDecision,
+} from './paths';
