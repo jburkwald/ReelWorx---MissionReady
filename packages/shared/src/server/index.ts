@@ -82,3 +82,11 @@ export {
   type PeopleSearchResult,
   type SearchCandidatesInput,
 } from './search';
+export {
+  getEmployerDashboard,
+  getCandidateDashboard,
+  type EmployerDashboard,
+  type CandidateDashboard,
+  type RecentReachOut,
+  type InterestedCompany,
+} from './dashboard';

@@ -176,6 +176,15 @@ function Workspace({
             Come-home search →
           </p>
         </Link>
+        <Link href="/dashboard/insights" className="card" style={{ display: 'block', borderColor: 'var(--spectrum-indigo)' }}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Insights</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            Proof it’s working — people surfaced, reach-outs, and conversations in one view.
+          </p>
+          <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: 'var(--spectrum-indigo)' }}>
+            See insights →
+          </p>
+        </Link>
         <div className="card">
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700 }}>Outreach tokens</h3>
           <p className="muted" style={{ margin: 0 }}>

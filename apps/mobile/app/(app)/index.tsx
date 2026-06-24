@@ -106,16 +106,20 @@ export default function Home() {
           </Pressable>
         ) : null}
 
-        {/* Profile strength meter — the calm Wrapped moment. */}
-        <View
-          style={{
-            backgroundColor: colors.gray050,
-            borderRadius: radius.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-            padding: spacing.lg,
-            gap: spacing.md,
-          }}
+        {/* Profile strength meter — the calm Wrapped moment; taps into the full view (6.2). */}
+        <Pressable
+          onPress={() => router.push('/(app)/progress')}
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.gray050,
+              borderRadius: radius.lg,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: spacing.lg,
+              gap: spacing.md,
+              opacity: pressed ? 0.92 : 1,
+            },
+          ]}
         >
           <View
             style={{
@@ -150,8 +154,10 @@ export default function Home() {
               }}
             />
           </View>
-          <Body muted>Every step you take here makes it stronger.</Body>
-        </View>
+          <Text style={{ fontSize: 13, color: colors.textMuted }}>
+            Every step makes it stronger — tap to see your momentum ›
+          </Text>
+        </Pressable>
 
         <View style={{ gap: spacing.md }}>
           <PrimaryButton
