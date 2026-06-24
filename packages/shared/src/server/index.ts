@@ -79,9 +79,17 @@ export {
 } from './roots';
 export {
   searchCandidates,
+  countNewCandidates,
   type PeopleSearchResult,
   type SearchCandidatesInput,
 } from './search';
+export {
+  createAlert,
+  deleteAlert,
+  listAlerts,
+  markAlertViewed,
+  type AlertView,
+} from './alerts';
 export {
   getEmployerDashboard,
   getCandidateDashboard,

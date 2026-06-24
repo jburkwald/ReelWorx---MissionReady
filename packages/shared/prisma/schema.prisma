@@ -191,8 +191,26 @@ model Organization {
   tokens     Token[] // company outreach allotment + top-ups
   advocates  Advocate[]
   shareLinks ShareLink[]
+  alerts     Alert[] // saved new-people alerts (Feature 3.4)
 
   @@map("organizations")
+}
+
+// A company's saved search for new matching people (Feature 3.4). Pull-based in the MVP:
+// the count of new candidates since lastViewedAt is computed on demand (no push job yet).
+model Alert {
+  id             String    @id @default(cuid())
+  organizationId String    @map("organization_id")
+  label          String
+  keyword        String?
+  place          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  lastViewedAt   DateTime? @map("last_viewed_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("alerts")
 }
 
 // A company_admin User administers one or more Organizations.

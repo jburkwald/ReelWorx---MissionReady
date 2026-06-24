@@ -24,37 +24,41 @@ export interface SearchCandidatesInput {
   limit?: number;
 }
 
+// Shared where-builder so search and the "new since" count never drift apart. Always
+// scoped to candidates discoverable to companies (never `private`).
+function candidateWhere(query?: string | null, place?: string | null): Prisma.ProfileWhereInput {
+  const q = query?.trim();
+  const p = place?.trim();
+  const and: Prisma.ProfileWhereInput[] = [];
+  if (q) {
+    and.push({
+      OR: [
+        { headline: { contains: q, mode: 'insensitive' } },
+        { mosTranslation: { contains: q, mode: 'insensitive' } },
+      ],
+    });
+  }
+  if (p) {
+    and.push({
+      OR: [
+        { roots: { some: { place: { contains: p, mode: 'insensitive' } } } },
+        { user: { hometown: { contains: p, mode: 'insensitive' } } },
+        { user: { currentLocation: { contains: p, mode: 'insensitive' } } },
+      ],
+    });
+  }
+  return {
+    visibility: { in: ['public', 'companies_only'] },
+    ...(and.length ? { AND: and } : {}),
+  };
+}
+
 export async function searchCandidates(
   prisma: PrismaClient,
   input: SearchCandidatesInput,
 ): Promise<PeopleSearchResult[]> {
-  const query = input.query?.trim();
-  const place = input.place?.trim();
-
-  const and: Prisma.ProfileWhereInput[] = [];
-  if (query) {
-    and.push({
-      OR: [
-        { headline: { contains: query, mode: 'insensitive' } },
-        { mosTranslation: { contains: query, mode: 'insensitive' } },
-      ],
-    });
-  }
-  if (place) {
-    and.push({
-      OR: [
-        { roots: { some: { place: { contains: place, mode: 'insensitive' } } } },
-        { user: { hometown: { contains: place, mode: 'insensitive' } } },
-        { user: { currentLocation: { contains: place, mode: 'insensitive' } } },
-      ],
-    });
-  }
-
   const profiles = await prisma.profile.findMany({
-    where: {
-      visibility: { in: ['public', 'companies_only'] },
-      ...(and.length ? { AND: and } : {}),
-    },
+    where: candidateWhere(input.query, input.place),
     include: { user: true, roots: true },
     orderBy: { completenessScore: 'desc' },
     take: input.limit ?? 25,
@@ -72,4 +76,15 @@ export async function searchCandidates(
     decodedSummary: p.mosTranslation,
     completenessScore: p.completenessScore,
   }));
+}
+
+/** Count discoverable candidates matching the criteria who appeared since a timestamp —
+ *  the "N new since you last looked" behind a saved alert (Feature 3.4). */
+export function countNewCandidates(
+  prisma: PrismaClient,
+  input: { query?: string | null; place?: string | null; since: Date },
+): Promise<number> {
+  return prisma.profile.count({
+    where: { ...candidateWhere(input.query, input.place), createdAt: { gte: input.since } },
+  });
 }
