@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Show } from '@clerk/nextjs';
 import { BRAND } from '@reelworx/shared';
 
 // Public planted-flag home for companies (Karen). Calm Apple structure; the single
@@ -16,19 +15,15 @@ export default function HomePage() {
             {BRAND.product}
           </span>
           <nav style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Show when="signed-out">
-              <Link href="/sign-in" className="btn btn-ghost">
-                Sign in
-              </Link>
-              <Link href="/sign-up" className="btn btn-primary">
-                Create company account
-              </Link>
-            </Show>
-            <Show when="signed-in">
-              <Link href="/dashboard" className="btn btn-primary">
-                Go to dashboard
-              </Link>
-            </Show>
+            <Link href="/jobs" className="btn btn-ghost">
+              Browse jobs
+            </Link>
+            <Link href="/sign-in" className="btn btn-ghost">
+              Sign in
+            </Link>
+            <Link href="/sign-up" className="btn btn-primary">
+              Create company account
+            </Link>
           </nav>
         </div>
       </header>
@@ -54,19 +49,12 @@ export default function HomePage() {
           business language so you can decide to reach out or pass.
         </p>
         <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
-          <Show when="signed-out">
-            <Link href="/sign-up" className="btn btn-spectrum">
-              Plant your flag
-            </Link>
-            <Link href="/sign-in" className="btn btn-ghost">
-              I already have an account
-            </Link>
-          </Show>
-          <Show when="signed-in">
-            <Link href="/dashboard" className="btn btn-spectrum">
-              Open your dashboard
-            </Link>
-          </Show>
+          <Link href="/jobs" className="btn btn-spectrum">
+            Browse open roles
+          </Link>
+          <Link href="/sign-up" className="btn btn-ghost">
+            Plant your flag (for companies)
+          </Link>
         </div>
         <div className="spectrum-bar" style={{ marginTop: 56, maxWidth: 320 }} />
       </section>

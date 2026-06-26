@@ -14,6 +14,7 @@ export * from './types/paths';
 export * from './fit/score';
 export * from './story/types';
 export * from './story/completeness';
+export * from './jobs/demo';
 export * from './studio/themes';
 export * from './assessment';
 export * from './api/client';

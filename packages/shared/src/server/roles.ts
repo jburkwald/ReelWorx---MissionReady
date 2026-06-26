@@ -10,6 +10,7 @@ import { getAnthropic, MODELS } from './ai';
 import { logEvent } from './events';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import type { IdealProfile } from '../types/fit';
+import type { PublicJob } from '../jobs/demo';
 
 const setIdealProfileTool: Anthropic.Tool = {
   name: 'set_ideal_profile',
@@ -167,4 +168,48 @@ export function listRolesForOrg(prisma: PrismaClient, organizationId: string) {
 
 export function getRole(prisma: PrismaClient, id: string) {
   return prisma.role.findUnique({ where: { id }, include: { reels: true } });
+}
+
+// --- Public job board (no auth, no profile) ---
+
+type RoleWithOrgReels = Prisma.RoleGetPayload<{
+  include: { organization: true; reels: true };
+}>;
+
+function roleToPublicJob(role: RoleWithOrgReels): PublicJob {
+  const reel = role.reels.find((r) => r.type === 'job') ?? role.reels[0];
+  const description = role.description ?? '';
+  return {
+    id: role.id,
+    title: role.title,
+    company: role.organization?.name ?? 'A planted-flag company',
+    location: role.location,
+    blurb: description.length > 180 ? `${description.slice(0, 180)}…` : description,
+    description,
+    videoUrl: reel?.videoUrl ?? null,
+  };
+}
+
+/** Every role, newest first — the public catalog. (A `published` flag can gate this later.) */
+export async function listPublishedJobs(
+  prisma: PrismaClient,
+  take = 60,
+): Promise<PublicJob[]> {
+  const roles = await prisma.role.findMany({
+    orderBy: { createdAt: 'desc' },
+    take,
+    include: { organization: true, reels: true },
+  });
+  return roles.map(roleToPublicJob);
+}
+
+export async function getPublishedJob(
+  prisma: PrismaClient,
+  id: string,
+): Promise<PublicJob | null> {
+  const role = await prisma.role.findUnique({
+    where: { id },
+    include: { organization: true, reels: true },
+  });
+  return role ? roleToPublicJob(role) : null;
 }

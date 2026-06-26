@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Bebas_Neue, DM_Sans } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs';
 import { BRAND } from '@reelworx/shared';
 import './globals.css';
 
@@ -19,25 +18,19 @@ const body = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: `${BRAND.product} — for companies`,
+  title: BRAND.product,
   description:
     'Hire the ones who served. Meet people through story and a science-backed fit read, not resumes and keyword search.',
 };
 
+// ClerkProvider is intentionally NOT here. Public pages (home, /jobs, /p, /c, /join,
+// /share) must render WITHOUT Clerk so browsing never depends on Clerk loading.
+// ClerkProvider is added only in the surfaces that use Clerk components: the dashboard
+// (app/dashboard/layout.tsx) and the auth pages (app/(auth)/layout.tsx).
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: '#0a0a0a',
-          borderRadius: '14px',
-          fontFamily: 'var(--font-body)',
-        },
-      }}
-    >
-      <html lang="en" className={`${display.variable} ${body.variable}`}>
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
+      <body>{children}</body>
+    </html>
   );
 }

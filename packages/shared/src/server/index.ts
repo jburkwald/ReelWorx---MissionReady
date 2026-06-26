@@ -32,6 +32,8 @@ export {
   createRole,
   listRolesForOrg,
   getRole,
+  listPublishedJobs,
+  getPublishedJob,
   type CreateRoleInput,
 } from './roles';
 export {
