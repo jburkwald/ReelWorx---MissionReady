@@ -15,6 +15,9 @@ export default function HomePage() {
             {BRAND.product}
           </span>
           <nav style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link href="/start" className="btn btn-ghost">
+              For veterans
+            </Link>
             <Link href="/jobs" className="btn btn-ghost">
               Browse jobs
             </Link>
@@ -95,8 +98,8 @@ export default function HomePage() {
         <p className="muted" style={{ fontSize: 13, margin: 0 }}>
           {BRAND.product} · Made for the ones who served. Built for everyone who connects.
         </p>
-        <Link href="/join" className="muted" style={{ fontSize: 13, fontWeight: 600, textDecoration: 'underline' }}>
-          Leaving the service? Stay in the loop →
+        <Link href="/start" className="muted" style={{ fontSize: 13, fontWeight: 600, textDecoration: 'underline' }}>
+          Leaving the service? Start here →
         </Link>
       </footer>
     </main>
