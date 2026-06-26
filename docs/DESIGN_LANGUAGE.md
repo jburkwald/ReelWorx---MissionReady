@@ -16,7 +16,7 @@ Two references, layered, not chosen one-over-the-other. Read this before writing
 
 ## What "Spotify Wrapped" means here, concretely
 
-- The ReelWorx rainbow-spectrum palette (red, orange, yellow, green, blue, indigo, violet) on black, used for celebratory and identity moments, not for every screen.
+- The ReelWorx palette is **black, white, and red** for the brand, and **red, white, and blue** (the flag) for celebratory and identity moments on black — **never a rainbow**. Red is the primary accent; the energy "gradient" is red → blue. Used for moments, not for every screen.
 - Oversized, confident type treatment for a single key number or statement at a milestone moment ("Your profile strength: 92%", "You have a new match", "Karen wants to talk to you").
 - Bold gradient color blocks as section dividers or card backgrounds for story content (Reels, profile cards) — this is where the brand's personality lives day-to-day, distinct from the celebratory full-screen moments.
 - Bebas Neue for display/headline moments, DM Sans for everything readable — this is the locked ReelWorx type pairing, carried over from existing brand work.
@@ -37,15 +37,16 @@ Two references, layered, not chosen one-over-the-other. Read this before writing
 Build these in `packages/shared/src/theme/tokens.ts` and consume from both apps. Treat as a first draft for the team to refine, not final.
 
 ```ts
-export const spectrum = {
-  red: '#FF3B30',
-  orange: '#FF9500',
-  yellow: '#FFD60A',
-  green: '#34C759',
-  blue: '#0A84FF',
-  indigo: '#5E5CE6',
-  violet: '#AF52DE',
+// Brand: black, white, red. "Moment" energy uses the flag — red, white, blue.
+// NEVER a rainbow. (`spectrum` is kept as a legacy alias mapped to these values.)
+export const brand = {
+  red: '#E4002B',
+  blue: '#1D4ED8',
+  black: '#0A0A0A',
+  white: '#FFFFFF',
 };
+// Energy gradient stops — red → blue (the flag).
+export const flagColors = ['#E4002B', '#1D4ED8'];
 
 export const neutral = {
   black: '#0A0A0A',      // primary dark background, Wrapped-style surfaces

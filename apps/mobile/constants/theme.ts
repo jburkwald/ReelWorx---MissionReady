@@ -2,12 +2,14 @@
 // React-Native-friendly shapes. Apple-calm neutrals are the default; the spectrum
 // is reserved for brand + milestone moments (Wrapped energy), per DESIGN_LANGUAGE.md.
 
-import { neutral, radius, spectrum } from '@reelworx/shared';
+import { brand, neutral, radius, spectrum } from '@reelworx/shared';
 
 export const colors = {
   ...spectrum,
   ...neutral,
-  accent: spectrum.blue,
+  red: brand.red,
+  blue: brand.blue,
+  accent: brand.red, // red is the brand accent now (no more rainbow)
   bg: neutral.white,
   text: neutral.gray900,
   textMuted: neutral.gray400,
@@ -15,16 +17,8 @@ export const colors = {
   fieldBg: neutral.gray050,
 };
 
-// Mutable tuple so it satisfies expo-linear-gradient's `colors` prop type.
-export const spectrumColors: [string, string, ...string[]] = [
-  spectrum.red,
-  spectrum.orange,
-  spectrum.yellow,
-  spectrum.green,
-  spectrum.blue,
-  spectrum.indigo,
-  spectrum.violet,
-];
+// Red → blue (the flag). Never a rainbow. Mutable tuple to satisfy expo-linear-gradient.
+export const spectrumColors: [string, string, ...string[]] = [brand.red, brand.blue];
 
 export const spacing = {
   xs: 4,

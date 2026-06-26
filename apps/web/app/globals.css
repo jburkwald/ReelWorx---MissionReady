@@ -7,24 +7,19 @@
  */
 
 :root {
-  /* Spectrum (Wrapped energy — used sparingly, for brand + milestone moments) */
-  --spectrum-red: #ff3b30;
-  --spectrum-orange: #ff9500;
-  --spectrum-yellow: #ffd60a;
-  --spectrum-green: #34c759;
-  --spectrum-blue: #0a84ff;
-  --spectrum-indigo: #5e5ce6;
-  --spectrum-violet: #af52de;
-  --spectrum: linear-gradient(
-    115deg,
-    var(--spectrum-red),
-    var(--spectrum-orange),
-    var(--spectrum-yellow),
-    var(--spectrum-green),
-    var(--spectrum-blue),
-    var(--spectrum-indigo),
-    var(--spectrum-violet)
-  );
+  /* Brand: black, white, red. "Moment" energy uses the flag — red, white, blue —
+     never a rainbow. These --spectrum-* names are legacy; the values are now the
+     flag palette, so every screen repaints from here. */
+  --brand-red: #e4002b;
+  --brand-blue: #1d4ed8;
+  --spectrum-red: var(--brand-red);
+  --spectrum-orange: var(--brand-red);
+  --spectrum-yellow: #ffffff;
+  --spectrum-green: var(--brand-blue);
+  --spectrum-blue: var(--brand-blue);
+  --spectrum-indigo: var(--brand-blue);
+  --spectrum-violet: var(--brand-red);
+  --spectrum: linear-gradient(115deg, var(--brand-red), var(--brand-blue));
 
   /* Neutrals (Apple structure — the calm default everywhere) */
   --black: #0a0a0a;
@@ -35,7 +30,7 @@
   --gray-700: #3c3c43;
   --gray-900: #1c1c1e;
 
-  --accent: var(--spectrum-blue);
+  --accent: var(--brand-red);
 
   /* Type — locked ReelWorx pairing, loaded via next/font in layout.tsx */
   --font-display: 'Bebas Neue', system-ui, sans-serif;

@@ -12,7 +12,11 @@ export default defineConfig({
   migrations: {
     path: path.join('prisma', 'migrations'),
   },
-  // Driver adapter for CLI commands that connect to the database.
+  // `prisma db push` / `studio` connect via this URL directly.
+  datasource: {
+    url: process.env.DATABASE_URL,
+  },
+  // Driver adapter for CLI commands that use it (e.g. migrate).
   async adapter() {
     const { PrismaPg } = await import('@prisma/adapter-pg');
     return new PrismaPg({ connectionString: process.env.DATABASE_URL });

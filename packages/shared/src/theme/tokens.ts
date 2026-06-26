@@ -3,15 +3,29 @@
 // starting draft — refine values, do not change the underlying structure
 // without updating the design doc to match.
 
-export const spectrum = {
-  red: '#FF3B30',
-  orange: '#FF9500',
-  yellow: '#FFD60A',
-  green: '#34C759',
-  blue: '#0A84FF',
-  indigo: '#5E5CE6',
-  violet: '#AF52DE',
+// Brand palette: black, white, red. Energy / "moment" treatments use the flag —
+// red, white, blue — NEVER a rainbow.
+export const brand = {
+  red: '#E4002B',
+  blue: '#1D4ED8',
+  black: '#0A0A0A',
+  white: '#FFFFFF',
 } as const;
+
+// Legacy name kept so existing consumers keep compiling; every value is now red,
+// white, or blue (the rainbow spectrum was retired). Prefer `brand` in new code.
+export const spectrum = {
+  red: brand.red,
+  orange: brand.red,
+  yellow: brand.white,
+  green: brand.blue,
+  blue: brand.blue,
+  indigo: brand.blue,
+  violet: brand.red,
+} as const;
+
+// Energy gradient stops — red → blue (the flag). Used for milestone / brand moments.
+export const flagColors: [string, string] = [brand.red, brand.blue];
 
 export const neutral = {
   black: '#0A0A0A',
@@ -43,6 +57,6 @@ export const motion = {
   celebrationDurationMs: 600,
 } as const;
 
-export const theme = { spectrum, neutral, fontFamily, radius, motion } as const;
+export const theme = { brand, spectrum, neutral, fontFamily, radius, motion } as const;
 
 export type Theme = typeof theme;
