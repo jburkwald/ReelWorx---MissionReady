@@ -3,14 +3,23 @@ import {
   VOICE_AGENT,
   getStoryPhase,
   strengthTier,
+  recordHeadline,
+  recordComplete,
+  SERVICE_BRANCHES,
+  RANK_BANDS,
+  YEARS_BANDS,
+  SEPARATION_STATUSES,
+  CLEARANCE_LEVELS,
+  type Labeled,
   type ParsedResume,
   type StoryEntryMode,
   type StoryMessage,
   type StoryPhaseId,
+  type VeteranRecord,
 } from '@reelworx/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -48,8 +57,9 @@ export default function StoryChat() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const mode = (params.mode as StoryEntryMode) ?? 'text';
 
-  // Upload mode starts on a resume paste step; everything else starts in conversation.
+  // Upload starts on a resume paste step; text + voice start on the tap-select record step.
   const [uploadOpen, setUploadOpen] = useState(mode === 'upload');
+  const [recordOpen, setRecordOpen] = useState(mode !== 'upload');
   const [resumeText, setResumeText] = useState('');
 
   const [messages, setMessages] = useState<StoryMessage[]>([
@@ -61,15 +71,19 @@ export default function StoryChat() {
   const [phase, setPhase] = useState<StoryPhaseId>('record');
 
   // Voice: speak the questions, listen to the answers (HD via ElevenLabs when configured).
+  // Text and voice both open on the record step, so the guide speaks the bridge once the
+  // record is done (submitRecord), not at mount.
   const voice = useVoiceAgent();
-  const spokeOpener = useRef(false);
-  useEffect(() => {
-    if (mode === 'talk' && !uploadOpen && !spokeOpener.current) {
-      spokeOpener.current = true;
-      voice.speak(VOICE_AGENT.spokenOpener);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, uploadOpen]);
+
+  function submitRecord(rec: VeteranRecord) {
+    const bridge =
+      `Thanks. ${recordHeadline(rec)} is a strong start. A record can't show the why, though, ` +
+      `and that's what companies remember. What part of the work felt most like you?`;
+    setMessages([{ role: 'assistant', content: bridge }]);
+    setPhase('story');
+    setRecordOpen(false);
+    if (mode === 'talk') voice.speak(bridge);
+  }
 
   const phaseInfo = getStoryPhase(phase);
   const tier = strengthTier(strength);
@@ -196,6 +210,8 @@ export default function StoryChat() {
           onSample={() => submitResume(true)}
           busy={sending}
         />
+      ) : recordOpen ? (
+        <RecordForm onDone={submitRecord} />
       ) : (
         <>
           {/* Messages */}
@@ -386,6 +402,94 @@ function ResumePaste({
         </Text>
       </Pressable>
     </ScrollView>
+  );
+}
+
+// Phase 1: the Veteran Door, captured by tap and select (Feature 1.1).
+function RecordForm({ onDone }: { onDone: (r: VeteranRecord) => void }) {
+  const [rec, setRec] = useState<VeteranRecord>({});
+  const set = (patch: Partial<VeteranRecord>) => setRec((r) => ({ ...r, ...patch }));
+  const ready = recordComplete(rec);
+  return (
+    <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+      <Text style={{ fontSize: 15, lineHeight: 22, color: colors.text }}>
+        The basics of your service. Just tap to choose — this is the part a resume gets wrong,
+        so we capture it cleanly.
+      </Text>
+      <ChipRow label="Branch" options={SERVICE_BRANCHES} value={rec.branch} onPick={(branch) => set({ branch })} />
+      <ChipRow label="Where you served as" options={RANK_BANDS} value={rec.rankBand} onPick={(rankBand) => set({ rankBand })} />
+      <ChipRow label="Time in service" options={YEARS_BANDS} value={rec.yearsBand} onPick={(yearsBand) => set({ yearsBand })} />
+      <ChipRow label="Where you are now" options={SEPARATION_STATUSES} value={rec.separation} onPick={(separation) => set({ separation })} />
+      <ChipRow label="Clearance (optional)" options={CLEARANCE_LEVELS} value={rec.clearance} onPick={(clearance) => set({ clearance })} />
+      <View>
+        <Text style={{ fontSize: 12.5, fontWeight: '800', letterSpacing: 0.3, color: colors.textMuted, textTransform: 'uppercase', marginBottom: 8 }}>
+          Hometown roots (optional)
+        </Text>
+        <TextInput
+          value={rec.hometown ?? ''}
+          onChangeText={(t) => set({ hometown: t })}
+          placeholder="e.g. Columbus, OH"
+          placeholderTextColor={colors.gray400}
+          style={{ height: 46, borderRadius: radius.md, backgroundColor: colors.fieldBg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, fontSize: 15, color: colors.text }}
+        />
+      </View>
+      <Pressable onPress={() => onDone(rec)} disabled={!ready}>
+        <LinearGradient
+          colors={spectrumColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ height: 52, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.45 }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+            {ready ? 'Next: your story' : 'Pick branch, rank, and status'}
+          </Text>
+        </LinearGradient>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+function ChipRow<T extends string>({
+  label,
+  options,
+  value,
+  onPick,
+}: {
+  label: string;
+  options: Labeled<T>[];
+  value: T | undefined;
+  onPick: (id: T) => void;
+}) {
+  return (
+    <View>
+      <Text style={{ fontSize: 12.5, fontWeight: '800', letterSpacing: 0.3, color: colors.textMuted, textTransform: 'uppercase', marginBottom: 8 }}>
+        {label}
+      </Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {options.map((o) => {
+          const sel = value === o.id;
+          return (
+            <Pressable
+              key={o.id}
+              onPress={() => onPick(o.id)}
+              style={{
+                paddingVertical: 9,
+                paddingHorizontal: 14,
+                borderRadius: radius.full,
+                borderWidth: 1,
+                backgroundColor: sel ? colors.black : colors.bg,
+                borderColor: sel ? colors.black : colors.border,
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: sel ? '#fff' : colors.text }}>
+                {o.label}
+                {o.hint ? `  ${o.hint}` : ''}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 

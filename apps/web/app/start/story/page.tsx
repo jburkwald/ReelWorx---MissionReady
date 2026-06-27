@@ -13,11 +13,20 @@ import {
   getStoryPhase,
   recordPhaseComplete,
   storyPhaseComplete,
+  recordHeadline,
+  recordComplete,
+  SERVICE_BRANCHES,
+  RANK_BANDS,
+  YEARS_BANDS,
+  SEPARATION_STATUSES,
+  CLEARANCE_LEVELS,
+  type Labeled,
   type ParsedResume,
   type ProfileExtraction,
   type StoryEntryMode,
   type StoryMessage,
   type StoryPhaseId,
+  type VeteranRecord,
 } from '@reelworx/shared';
 import { useVoiceAgent, type VoiceAgent } from '../../../lib/useVoiceAgent';
 
@@ -74,10 +83,22 @@ function deriveState(acc: Acc) {
 
 export default function GuestStory() {
   const [mode, setMode] = useState<StoryEntryMode | null>(null);
+  const [record, setRecord] = useState<VeteranRecord | null>(null);
 
   if (!mode) return <EntryPicker onPick={setMode} />;
-  if (mode === 'upload') return <UploadFastTrack onBack={() => setMode(null)} />;
-  return <Conversation mode={mode} onBack={() => setMode(null)} />;
+  // Upload pre-fills the record by parsing the resume; the others capture it by tap-select.
+  if (mode === 'upload') {
+    return (
+      <UploadFastTrack
+        onBack={() => {
+          setMode(null);
+          setRecord(null);
+        }}
+      />
+    );
+  }
+  if (!record) return <RecordStep onBack={() => setMode(null)} onDone={setRecord} />;
+  return <Conversation mode={mode} seededRecord={record} onBack={() => setRecord(null)} />;
 }
 
 // ── Step 0: choose your way in ───────────────────────────────────────────────
@@ -133,6 +154,107 @@ function EntryPicker({ onPick }: { onPick: (m: StoryEntryMode) => void }) {
         outcome.
       </p>
     </main>
+  );
+}
+
+// ── Phase 1: Your record — captured by tap and select (the Veteran Door, 1.1) ─────
+
+function RecordStep({
+  onBack,
+  onDone,
+}: {
+  onBack: () => void;
+  onDone: (r: VeteranRecord) => void;
+}) {
+  const [rec, setRec] = useState<VeteranRecord>({});
+  const set = (patch: Partial<VeteranRecord>) => setRec((r) => ({ ...r, ...patch }));
+  const ready = recordComplete(rec);
+
+  return (
+    <main style={{ flex: 1, padding: '20px 20px 28px', display: 'flex', flexDirection: 'column', gap: 18, overflowY: 'auto' }}>
+      <button onClick={onBack} style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-700)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, alignSelf: 'flex-start' }}>
+        ‹ Back
+      </button>
+
+      <div>
+        <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 0.3 }}>Phase 1 of 3 · Your record</span>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: '8px 0 0' }}>The basics of your service.</h1>
+        <p style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--gray-700)', marginTop: 6 }}>
+          Just tap to choose. This is the part a resume gets wrong, so we capture it cleanly.
+          About a minute.
+        </p>
+      </div>
+
+      <ChipGroup label="Branch" options={SERVICE_BRANCHES} value={rec.branch} onPick={(branch) => set({ branch })} />
+      <ChipGroup label="Where you served as" options={RANK_BANDS} value={rec.rankBand} onPick={(rankBand) => set({ rankBand })} />
+      <ChipGroup label="Time in service" options={YEARS_BANDS} value={rec.yearsBand} onPick={(yearsBand) => set({ yearsBand })} />
+      <ChipGroup label="Where you are now" options={SEPARATION_STATUSES} value={rec.separation} onPick={(separation) => set({ separation })} />
+      <ChipGroup label="Clearance (optional)" options={CLEARANCE_LEVELS} value={rec.clearance} onPick={(clearance) => set({ clearance })} />
+
+      <label style={{ fontSize: 13, fontWeight: 700 }}>
+        Hometown roots (optional)
+        <input
+          value={rec.hometown ?? ''}
+          onChange={(e) => set({ hometown: e.target.value })}
+          placeholder="e.g. Columbus, OH"
+          style={{ width: '100%', height: 44, marginTop: 6, borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-100)', background: 'var(--gray-050)', padding: '0 14px', fontSize: 15, fontFamily: 'var(--font-body)' }}
+        />
+        <span style={{ fontSize: 12, color: 'var(--gray-400)', display: 'block', marginTop: 4 }}>
+          So companies in your region can find you (Come Home search).
+        </span>
+      </label>
+
+      <button
+        onClick={() => onDone(rec)}
+        disabled={!ready}
+        className="btn btn-spectrum"
+        style={{ height: 52, marginTop: 4, opacity: ready ? 1 : 0.45 }}
+      >
+        {ready ? 'Next: your story ›' : 'Pick a branch, rank, and status'}
+      </button>
+    </main>
+  );
+}
+
+function ChipGroup<T extends string>({
+  label,
+  options,
+  value,
+  onPick,
+}: {
+  label: string;
+  options: Labeled<T>[];
+  value: T | undefined;
+  onPick: (id: T) => void;
+}) {
+  return (
+    <div>
+      <div style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: 0.3, color: 'var(--gray-400)', textTransform: 'uppercase', marginBottom: 8 }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {options.map((o) => {
+          const selected = value === o.id;
+          return (
+            <button
+              key={o.id}
+              onClick={() => onPick(o.id)}
+              className="chip"
+              style={{
+                background: selected ? 'var(--black)' : 'var(--white)',
+                color: selected ? '#fff' : 'var(--gray-900)',
+                borderColor: selected ? 'var(--black)' : 'var(--gray-100)',
+              }}
+            >
+              {o.label}
+              {o.hint ? (
+                <span style={{ fontSize: 11, opacity: 0.7, marginLeft: 6 }}>{o.hint}</span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -276,14 +398,16 @@ function Conversation({
   mode,
   onBack,
   seededResume,
+  seededRecord,
 }: {
   mode: StoryEntryMode;
   onBack: () => void;
   seededResume?: ParsedResume;
+  seededRecord?: VeteranRecord;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const acc = useRef<Acc>({
-    headline: seededResume?.headline ?? '',
+    headline: seededResume?.headline ?? (seededRecord ? recordHeadline(seededRecord) : ''),
     skills: new Set(seededResume?.skills ?? []),
     values: new Set<string>(),
     why: 0,
@@ -294,9 +418,12 @@ function Conversation({
     ? `Got it — that gives me your record: ${seededResume.headline ?? 'your background'}. ` +
       `A resume can’t show the why, though, and that’s the part companies remember. ` +
       `So tell me: what part of that work actually felt right to you?`
-    : mode === 'talk'
-      ? VOICE_AGENT.spokenOpener
-      : STORY_OPENER;
+    : seededRecord
+      ? `Thanks for that. ${recordHeadline(seededRecord)} is a strong start. The part a record can’t ` +
+        `show is the why, and that’s what companies remember. What part of the work felt most like you?`
+      : mode === 'talk'
+        ? VOICE_AGENT.spokenOpener
+        : STORY_OPENER;
 
   const [messages, setMessages] = useState<StoryMessage[]>([
     { role: 'assistant', content: firstAssistant },
