@@ -114,6 +114,7 @@ export {
   type ProfileStrengthFields,
 } from './strength';
 export { parseResume, type ParseResumeResult } from './resume';
+export { getCandidateFitReads, type CandidateFitRead } from './candidate-matches';
 export {
   voiceProviderConfigured,
   synthesizeSpeech,
@@ -150,6 +151,7 @@ export {
   demoMatches,
   demoEmployerDashboard,
   demoCandidateDashboard,
+  demoCandidateFitReads,
   demoPeople,
   demoChampions,
   demoAlerts,

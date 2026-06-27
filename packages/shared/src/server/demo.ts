@@ -409,6 +409,43 @@ export function demoCandidateDashboard(): CandidateDashboard {
   };
 }
 
+// ── Candidate-side Fit Read (2.2, Dana's view) ───────────────────────────────
+
+export function demoCandidateFitReads(): import('./candidate-matches').CandidateFitRead[] {
+  return [
+    {
+      roleId: 'demo-role-ops',
+      roleTitle: 'Regional Operations Lead',
+      company: 'Ridgeline Logistics',
+      location: 'Columbus, OH',
+      overall: 91,
+      tier: fitTier(91),
+      why: 'A strong match on Resilience & Drive and Motivation & Values.',
+      gap: null,
+    },
+    {
+      roleId: 'demo-role-csm',
+      roleTitle: 'Customer Success Manager',
+      company: 'Beacon Health',
+      location: 'Austin, TX (hybrid)',
+      overall: 74,
+      tier: fitTier(74),
+      why: 'A strong match on Emotional Intelligence.',
+      gap: 'Room to grow on Skills & Experience.',
+    },
+    {
+      roleId: 'demo-role-tech',
+      roleTitle: 'Field Service Technician',
+      company: 'Summit Energy',
+      location: 'Remote / regional travel',
+      overall: 63,
+      tier: fitTier(63),
+      why: 'Worth a look based on the whole of who you are.',
+      gap: 'Room to grow on Skills & Experience.',
+    },
+  ];
+}
+
 // ── People search (Come Home 3.3) ────────────────────────────────────────────
 
 const DEMO_PEOPLE: PeopleSearchResult[] = [
