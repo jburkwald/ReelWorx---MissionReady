@@ -84,3 +84,61 @@ export async function spendInviteToken(
   });
   return true;
 }
+
+// ── Candidate side: application tokens (Feature 3.2) ──────────────────────────
+//
+// Reaching out costs the candidate something too, so it stays meaningful (signal over
+// volume). A small monthly allotment — deliberately scarcer than the company's, because a
+// person applies to a few places they truly want, not fifty.
+export const MONTHLY_APPLICATION_ALLOTMENT = 5;
+
+export async function ensureMonthlyApplicationTokens(
+  prisma: PrismaClient,
+  userId: string,
+): Promise<void> {
+  const grantedThisMonth = await prisma.token.count({
+    where: {
+      userId,
+      type: 'application',
+      source: 'monthly_grant',
+      createdAt: { gte: startOfMonthUTC() },
+    },
+  });
+  if (grantedThisMonth > 0) return;
+
+  await prisma.token.createMany({
+    data: Array.from({ length: MONTHLY_APPLICATION_ALLOTMENT }, () => ({
+      userId,
+      type: 'application' as const,
+      source: 'monthly_grant' as const,
+    })),
+  });
+}
+
+export function getApplicationBalance(prisma: PrismaClient, userId: string): Promise<number> {
+  return prisma.token.count({ where: { userId, type: 'application', status: 'active' } });
+}
+
+export async function getReadyApplicationBalance(
+  prisma: PrismaClient,
+  userId: string,
+): Promise<number> {
+  if (!isDbConfigured()) return MONTHLY_APPLICATION_ALLOTMENT;
+  await ensureMonthlyApplicationTokens(prisma, userId);
+  return getApplicationBalance(prisma, userId);
+}
+
+export async function spendApplicationToken(
+  prisma: PrismaClient,
+  userId: string,
+  spentOn: string,
+): Promise<boolean> {
+  const token = await prisma.token.findFirst({
+    where: { userId, type: 'application', status: 'active' },
+    orderBy: [{ expiresAt: 'asc' }, { createdAt: 'asc' }],
+  });
+  if (!token) return false;
+
+  await prisma.token.update({ where: { id: token.id }, data: { status: 'spent', spentOn } });
+  return true;
+}

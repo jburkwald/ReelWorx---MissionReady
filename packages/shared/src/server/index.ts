@@ -72,6 +72,11 @@ export {
   getInviteBalance,
   getReadyInviteBalance,
   spendInviteToken,
+  MONTHLY_APPLICATION_ALLOTMENT,
+  ensureMonthlyApplicationTokens,
+  getApplicationBalance,
+  getReadyApplicationBalance,
+  spendApplicationToken,
 } from './tokens';
 export {
   reachOutToCandidate,
@@ -114,7 +119,14 @@ export {
   type ProfileStrengthFields,
 } from './strength';
 export { parseResume, type ParseResumeResult } from './resume';
-export { getCandidateFitReads, type CandidateFitRead } from './candidate-matches';
+export {
+  getCandidateFitReads,
+  getCandidateReachBalance,
+  applyToRole,
+  type CandidateFitRead,
+  type ApplyResult,
+  type ApplyStatus,
+} from './candidate-matches';
 export {
   voiceProviderConfigured,
   synthesizeSpeech,

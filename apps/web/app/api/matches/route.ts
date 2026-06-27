@@ -1,5 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { getCandidateFitReads, prisma, syncUser } from '@reelworx/shared/server';
+import { getCandidateFitReads, getCandidateReachBalance, prisma, syncUser } from '@reelworx/shared/server';
 import { NextResponse } from 'next/server';
 
 // Candidate-side Fit Read (Feature 2.2) — the MOBILE app reads the companies that suit them,
@@ -16,8 +16,11 @@ export async function GET() {
 
   try {
     const user = await syncUser(prisma, { authId: userId, email, role: 'candidate' });
-    const reads = await getCandidateFitReads(prisma, user.id);
-    return NextResponse.json({ reads });
+    const [reads, tokens] = await Promise.all([
+      getCandidateFitReads(prisma, user.id),
+      getCandidateReachBalance(prisma, user.id),
+    ]);
+    return NextResponse.json({ reads, tokens });
   } catch (err) {
     return NextResponse.json({ error: 'Fit Read unavailable', detail: String(err) }, { status: 503 });
   }

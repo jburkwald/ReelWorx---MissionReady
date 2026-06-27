@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Body, GhostButton, Heading, Screen } from '../../components/ui';
 import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
 import { useApi } from '../../lib/api';
@@ -22,14 +22,19 @@ export default function Fit() {
   const router = useRouter();
   const api = useApi();
   const [reads, setReads] = useState<CandidateFitRead[] | null>(null);
+  const [tokens, setTokens] = useState(0);
+  const [applied, setApplied] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     api
-      .get<{ reads: CandidateFitRead[] }>('/matches')
+      .get<{ reads: CandidateFitRead[]; tokens: number }>('/matches')
       .then((d) => {
-        if (active) setReads(d.reads);
+        if (active) {
+          setReads(d.reads);
+          setTokens(d.tokens ?? 0);
+        }
       })
       .catch(() => {})
       .finally(() => {
@@ -39,6 +44,18 @@ export default function Fit() {
       active = false;
     };
   }, [api]);
+
+  async function reachOut(roleId: string) {
+    if (applied[roleId] || tokens <= 0) return;
+    setApplied((a) => ({ ...a, [roleId]: true }));
+    try {
+      const res = await api.post<{ ok: boolean; balance: number }>('/apply', { roleId });
+      if (res.ok) setTokens(res.balance);
+      else setApplied((a) => ({ ...a, [roleId]: false }));
+    } catch {
+      setApplied((a) => ({ ...a, [roleId]: false }));
+    }
+  }
 
   return (
     <Screen>
@@ -54,6 +71,12 @@ export default function Fit() {
             Read against who you actually are, not keywords. Here is why each one fits, and the
             one place to grow.
           </Body>
+          {!loading ? (
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>
+              {tokens} outreach {tokens === 1 ? 'token' : 'tokens'} this month
+              <Text style={{ color: colors.textMuted, fontWeight: '400' }}> · spend them where it counts</Text>
+            </Text>
+          ) : null}
         </View>
 
         {loading ? (
@@ -101,6 +124,25 @@ export default function Fit() {
                 {r.gap ? (
                   <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>{r.gap}</Text>
                 ) : null}
+
+                {applied[r.roleId] ? (
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.accent, marginTop: 14 }}>
+                    ✓ You reached out
+                  </Text>
+                ) : (
+                  <Pressable onPress={() => reachOut(r.roleId)} disabled={tokens <= 0} style={{ marginTop: 14 }}>
+                    <LinearGradient
+                      colors={spectrumColors}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ height: 44, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center', opacity: tokens <= 0 ? 0.45 : 1 }}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+                        {tokens <= 0 ? 'Out of tokens this month' : 'Reach out · 1 token'}
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                )}
               </View>
             ))}
           </View>

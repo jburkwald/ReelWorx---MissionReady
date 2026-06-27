@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getCandidateFitReads, prisma, type CandidateFitRead } from '@reelworx/shared/server';
+import { ReachOutButton } from './ReachOutButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,9 +82,10 @@ export default async function CandidateFit() {
               ) : null}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-                <Link href={`/jobs/${r.roleId}`} className="btn btn-spectrum" style={{ height: 40, flex: 1 }}>
+                <Link href={`/jobs/${r.roleId}`} className="btn btn-ghost" style={{ height: 40, flex: 1 }}>
                   See the role
                 </Link>
+                <ReachOutButton company={r.company} />
               </div>
             </div>
           ))}

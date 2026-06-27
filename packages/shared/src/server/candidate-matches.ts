@@ -12,6 +12,13 @@ import {
   type IdealProfile,
 } from '../types/fit';
 import { isDbConfigured, demoCandidateFitReads } from './demo';
+import {
+  MONTHLY_APPLICATION_ALLOTMENT,
+  getApplicationBalance,
+  getReadyApplicationBalance,
+  spendApplicationToken,
+} from './tokens';
+import { logEvent } from './events';
 import type { PrismaClient } from '../generated/prisma/client';
 
 export interface CandidateFitRead {
@@ -77,4 +84,71 @@ export async function getCandidateFitReads(
     .filter((x) => x.overall > 0)
     .sort((a, b) => b.overall - a.overall)
     .slice(0, limit);
+}
+
+/** The candidate's spendable outreach (application) tokens. */
+export function getCandidateReachBalance(prisma: PrismaClient, userId: string): Promise<number> {
+  return getReadyApplicationBalance(prisma, userId);
+}
+
+export type ApplyStatus = 'applied' | 'already' | 'out_of_tokens' | 'role_missing';
+
+export interface ApplyResult {
+  ok: boolean;
+  status: ApplyStatus;
+  balance: number;
+  demo?: boolean;
+}
+
+/**
+ * Intentful reach from the candidate (Feature 3.2): spend one application token and mark the
+ * Match as `applied`. Idempotent — re-applying doesn't spend again. Keyless demo returns a
+ * believable result so the walk-through gets the "I reached out" moment without a DB.
+ */
+export async function applyToRole(
+  prisma: PrismaClient,
+  input: { userId: string; roleId: string },
+): Promise<ApplyResult> {
+  if (!isDbConfigured()) {
+    return { ok: true, status: 'applied', balance: MONTHLY_APPLICATION_ALLOTMENT - 1, demo: true };
+  }
+
+  const role = await prisma.role.findUnique({ where: { id: input.roleId } });
+  if (!role) return { ok: false, status: 'role_missing', balance: 0 };
+
+  const key = {
+    candidateId_organizationId_roleId: {
+      candidateId: input.userId,
+      organizationId: role.organizationId,
+      roleId: role.id,
+    },
+  };
+
+  const existing = await prisma.match.findUnique({ where: key });
+  if (existing && ['applied', 'invited', 'connected'].includes(existing.status)) {
+    return { ok: true, status: 'already', balance: await getApplicationBalance(prisma, input.userId) };
+  }
+
+  const spent = await spendApplicationToken(prisma, input.userId, role.id);
+  if (!spent) return { ok: false, status: 'out_of_tokens', balance: 0 };
+
+  await prisma.match.upsert({
+    where: key,
+    create: {
+      candidateId: input.userId,
+      organizationId: role.organizationId,
+      roleId: role.id,
+      status: 'applied',
+    },
+    update: { status: 'applied' },
+  });
+
+  await logEvent(prisma, {
+    actorId: input.userId,
+    eventType: 'candidate_applied',
+    targetId: role.id,
+    metadata: { organizationId: role.organizationId },
+  });
+
+  return { ok: true, status: 'applied', balance: await getApplicationBalance(prisma, input.userId) };
 }
