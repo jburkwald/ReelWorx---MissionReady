@@ -1,10 +1,13 @@
 import { parseResume } from '@reelworx/shared/server';
 import { NextResponse } from 'next/server';
+import { checkRate } from '../../../../lib/rateLimit';
 
 // GUEST resume fast-track — no auth, no DB. Parses a pasted resume to pre-fill Phase 1
 // (the record). With ANTHROPIC_API_KEY it's the real parse; without it, parseResume
 // returns a canned sample so the upload path walks with no AI key.
 export async function POST(req: Request) {
+  const limited = checkRate(req, 'guest-resume', 20);
+  if (limited) return limited;
   let body: { text?: string };
   try {
     body = await req.json();

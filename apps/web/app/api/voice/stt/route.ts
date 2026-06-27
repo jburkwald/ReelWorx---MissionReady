@@ -1,11 +1,14 @@
 import { transcribeSpeech } from '@reelworx/shared/server';
 import { NextResponse } from 'next/server';
+import { checkRate } from '../../../../lib/rateLimit';
 
 // Premium speech-to-text: transcribes a recorded answer (ElevenLabs Scribe). 501 when no
 // key, so the client falls back to the browser's SpeechRecognition.
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const limited = checkRate(req, 'stt', 40);
+  if (limited) return limited;
   let form: FormData;
   try {
     form = await req.formData();

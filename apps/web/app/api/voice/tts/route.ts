@@ -1,5 +1,6 @@
 import { synthesizeSpeech, type SynthesizeOptions } from '@reelworx/shared/server';
 import { NextResponse } from 'next/server';
+import { checkRate } from '../../../../lib/rateLimit';
 
 // Premium text-to-speech: speaks the agent's reply in the configured ElevenLabs voice.
 // Returns audio/mpeg. 501 when no key is set, so the client falls back to browser TTS.
@@ -19,6 +20,8 @@ async function synth(text: string, opts: SynthesizeOptions) {
 
 // POST (web): JSON body. Returns audio/mpeg, or 501 to fall back to the browser voice.
 export async function POST(req: Request) {
+  const limited = checkRate(req, 'tts', 60);
+  if (limited) return limited;
   let body: { text?: string } & SynthesizeOptions;
   try {
     body = await req.json();
@@ -38,6 +41,8 @@ export async function POST(req: Request) {
 // GET (mobile): query params, so the native audio player can stream the HD voice by URL.
 //   /api/voice/tts?text=...&speed=1.0&voiceId=...
 export async function GET(req: Request) {
+  const limited = checkRate(req, 'tts', 60);
+  if (limited) return limited;
   const url = new URL(req.url);
   const text = url.searchParams.get('text');
   if (!text?.trim()) {

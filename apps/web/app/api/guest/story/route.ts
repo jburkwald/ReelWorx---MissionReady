@@ -1,6 +1,7 @@
 import { runStoryTurn } from '@reelworx/shared/server';
 import { VOICE_AGENT, type StoryMessage } from '@reelworx/shared';
 import { NextResponse } from 'next/server';
+import { checkRate } from '../../../../lib/rateLimit';
 
 // GUEST story endpoint — no auth, no DB. Lets anyone experience the Story Profile agent
 // (the heart of the candidate journey) without signing up. With ANTHROPIC_API_KEY it's
@@ -15,6 +16,8 @@ const FALLBACK_REPLIES = [
 ];
 
 export async function POST(req: Request) {
+  const limited = checkRate(req, 'guest-story', 40);
+  if (limited) return limited;
   let body: { messages?: StoryMessage[]; voice?: boolean };
   try {
     body = await req.json();
