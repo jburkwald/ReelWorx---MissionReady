@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 // The backend is the web app's API (Next route handlers). The mobile app reaches it
 // over HTTP — never via Prisma directly. The Clerk session token is attached as a
 // Bearer header so the API can authenticate the request.
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
 // The web origin (API base minus the trailing /api) — used to build public share links
 // like the candidate's story profile (Feature 1.3).

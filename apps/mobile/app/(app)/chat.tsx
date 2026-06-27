@@ -1,5 +1,6 @@
 import {
   STORY_OPENER,
+  VOICE_AGENT,
   getStoryPhase,
   strengthTier,
   type ParsedResume,
@@ -9,7 +10,7 @@ import {
 } from '@reelworx/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -23,6 +24,7 @@ import {
 import { GhostButton } from '../../components/ui';
 import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
 import { useApi } from '../../lib/api';
+import { useVoiceAgent } from '../../lib/useVoiceAgent';
 
 interface StoryTurnResponse {
   reply: string;
@@ -37,7 +39,8 @@ interface ResumeResponse {
 
 // The phased Story Profile conversation (Feature 1.2), layered over the existing agent.
 // Shows Phase X of 3 + the registry strength meter (same number as 6.2). Three entry
-// modes converge here: text, voice (typed fallback in-app preview), and resume upload.
+// modes converge here: text, voice (the guide speaks and listens — HD via ElevenLabs when
+// configured, device voice otherwise), and resume upload.
 export default function StoryChat() {
   const router = useRouter();
   const api = useApi();
@@ -50,12 +53,23 @@ export default function StoryChat() {
   const [resumeText, setResumeText] = useState('');
 
   const [messages, setMessages] = useState<StoryMessage[]>([
-    { role: 'assistant', content: STORY_OPENER },
+    { role: 'assistant', content: mode === 'talk' ? VOICE_AGENT.spokenOpener : STORY_OPENER },
   ]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [strength, setStrength] = useState(0);
   const [phase, setPhase] = useState<StoryPhaseId>('record');
+
+  // Voice: speak the questions, listen to the answers (HD via ElevenLabs when configured).
+  const voice = useVoiceAgent();
+  const spokeOpener = useRef(false);
+  useEffect(() => {
+    if (mode === 'talk' && !uploadOpen && !spokeOpener.current) {
+      spokeOpener.current = true;
+      voice.speak(VOICE_AGENT.spokenOpener);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, uploadOpen]);
 
   const phaseInfo = getStoryPhase(phase);
   const tier = strengthTier(strength);
@@ -106,10 +120,14 @@ export default function StoryChat() {
     setSending(true);
     toEnd();
     try {
-      const res = await api.post<StoryTurnResponse>('/story', { messages: next });
+      const res = await api.post<StoryTurnResponse>('/story', {
+        messages: next,
+        voice: mode === 'talk',
+      });
       setMessages((m) => [...m, { role: 'assistant', content: res.reply }]);
       setStrength(res.completeness);
       if (res.phase) setPhase(res.phase);
+      if (mode === 'talk') voice.speak(res.reply);
     } catch {
       setMessages((m) => [
         ...m,
@@ -191,18 +209,52 @@ export default function StoryChat() {
               <Bubble key={i} message={m} />
             ))}
             {mode === 'talk' ? (
-              <Pressable
-                onPress={() =>
-                  send(
-                    'I spent eight years in Army logistics, ended up running a 45-person section. The part I liked most was a hard day going smooth because the team was ready.',
-                  )
-                }
-                style={{ alignSelf: 'flex-start' }}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent }}>
-                  🎙 Voice is on — tap to speak your answer
+              <View style={{ alignSelf: 'stretch', gap: 6 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    letterSpacing: 0.3,
+                    color: voice.premium.provider ? colors.accent : colors.textMuted,
+                  }}
+                >
+                  {voice.premium.provider ? 'HD VOICE · ELEVENLABS' : 'DEVICE VOICE'}
                 </Text>
-              </Pressable>
+                {voice.supported.stt ? (
+                  <Pressable
+                    onPress={() =>
+                      voice.listening ? voice.stopListening() : voice.listen((t) => send(t))
+                    }
+                    disabled={sending}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start' }}
+                  >
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: radius.full,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: voice.listening ? colors.accent : colors.black,
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 18 }}>{voice.listening ? '■' : '🎤'}</Text>
+                    </View>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>
+                      {voice.listening
+                        ? 'Listening… tap to send'
+                        : voice.speaking
+                          ? 'Speaking…'
+                          : 'Tap to answer out loud'}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Text style={{ fontSize: 13, color: colors.textMuted }}>
+                    Questions are read aloud. Type your answer below, or add the ElevenLabs key to
+                    speak back.
+                  </Text>
+                )}
+              </View>
             ) : null}
             {sending ? (
               <View style={{ alignSelf: 'flex-start', paddingVertical: 8 }}>

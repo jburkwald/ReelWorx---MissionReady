@@ -28,7 +28,8 @@
           "cameraPermission": "ReelWorx uses the camera so you can record your intro video.",
           "microphonePermission": "ReelWorx uses the microphone so your intro video has sound."
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": false
