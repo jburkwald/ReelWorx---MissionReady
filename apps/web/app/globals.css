@@ -153,3 +153,109 @@ a {
 .muted {
   color: var(--gray-400);
 }
+
+/* =========================================================================
+   Candidate experience — motion + components.
+   Apple restraint governs the day-to-day; the flag (red→blue) lights up only
+   the earned moments. Motion is spring-based and quiet, never decorative.
+   ========================================================================= */
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dot-bounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes pop-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.03); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.fade-in-up { animation: fade-in-up 0.5s var(--ease-spring) both; }
+.rise-in { animation: rise-in 0.55s var(--ease-spring) both; }
+
+/* Tap-to-answer chips — the lowest-friction way to respond (no blank-page anxiety). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--gray-100);
+  background: var(--white);
+  color: var(--gray-900);
+  border-radius: var(--radius-full);
+  padding: 10px 15px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-spring), border-color 0.15s ease,
+    background 0.15s ease;
+}
+.chip:hover { border-color: var(--brand-red); }
+.chip:active { transform: scale(0.97); }
+
+/* Calm typing indicator. */
+.typing { display: inline-flex; gap: 5px; align-items: center; padding: 12px 16px; }
+.typing i {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--gray-400); display: inline-block;
+  animation: dot-bounce 1.2s infinite;
+}
+.typing i:nth-child(2) { animation-delay: 0.15s; }
+.typing i:nth-child(3) { animation-delay: 0.3s; }
+
+/* Profile-strength meter (competence made visible, framed as growth). */
+.meter-track {
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--gray-100);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--spectrum);
+  transition: width 0.7s var(--ease-spring);
+}
+
+/* Earned celebration — variable, restrained, flag energy. Only at real milestones. */
+.celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 36px;
+  color: #fff;
+  background: radial-gradient(
+    130% 120% at 50% 28%,
+    var(--brand-red) 0%,
+    #7a1530 55%,
+    var(--brand-blue) 100%
+  );
+  animation: fade-in-up 0.4s ease both;
+}
+.celebrate .big {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: clamp(44px, 13vw, 72px);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+  animation: pop-in 0.5s var(--ease-spring) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up, .rise-in, .celebrate, .celebrate .big, .typing i { animation: none; }
+  .meter-fill { transition: none; }
+}

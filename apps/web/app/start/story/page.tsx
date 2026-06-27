@@ -15,30 +15,51 @@ interface GuestStoryResponse {
   demo?: boolean;
 }
 
-// The Story Profile agent — Marcus's centerpiece. Calm, one question at a time; the
-// strength meter climbs as the story takes shape. Guest mode (no sign-in, no DB).
+// Tap-to-answer starters — the single highest-friction moment is the first reply, so we
+// remove the blank page. "I'm not sure" matters most: it meets the person who doesn't
+// yet know who they become next (Marcus) without judgment.
+const OPENER_CHIPS = ['Where I served', 'What I’m hoping for next', 'I’m not sure where to start'];
+
+// Variable, earned celebration — only at real milestones, never decorative.
+const MILESTONES = [
+  { at: 30, big: 'Taking\nshape', sub: 'Companies can start to see who you are.' },
+  { at: 60, big: 'Look\nat you', sub: 'Your story is getting strong.' },
+  { at: 90, big: 'So\nclose', sub: 'This is a profile to be proud of.' },
+];
+
 export default function GuestStory() {
   const scroller = useRef<HTMLDivElement>(null);
+  const acc = useRef({ skills: new Set<string>(), values: new Set<string>(), headline: '', why: 0 });
+
   const [messages, setMessages] = useState<StoryMessage[]>([
     { role: 'assistant', content: STORY_OPENER },
   ]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [strength, setStrength] = useState(6);
+  const [celebration, setCelebration] = useState<{ big: string; sub: string } | null>(null);
 
-  // Accumulated extraction → real profile-strength via the shared, honest formula.
-  const acc = useRef({ skills: new Set<string>(), values: new Set<string>(), headline: '', why: 0 });
+  const showOpenerChips = messages.length === 1 && !sending;
 
   function scrollDown() {
-    requestAnimationFrame(() => {
-      scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
-    });
+    requestAnimationFrame(() =>
+      scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' }),
+    );
   }
 
-  async function send() {
-    const text = input.trim();
-    if (!text || sending) return;
-    const next: StoryMessage[] = [...messages, { role: 'user', content: text }];
+  function bumpStrength(next: number) {
+    const crossed = MILESTONES.filter((m) => strength < m.at && next >= m.at).pop();
+    setStrength(next);
+    if (crossed) {
+      setCelebration({ big: crossed.big, sub: crossed.sub });
+      window.setTimeout(() => setCelebration(null), 2600);
+    }
+  }
+
+  async function sendText(text: string) {
+    const clean = text.trim();
+    if (!clean || sending) return;
+    const next: StoryMessage[] = [...messages, { role: 'user', content: clean }];
     setMessages(next);
     setInput('');
     setSending(true);
@@ -59,7 +80,7 @@ export default function GuestStory() {
         data.extraction.coreValues?.forEach((v) => a.values.add(v));
         if (data.extraction.headline) a.headline = data.extraction.headline;
         a.why += data.extraction.whyEachMove?.length ?? 0;
-        setStrength(
+        bumpStrength(
           computeProfileCompleteness({
             hasIntroVideo: false,
             headline: a.headline,
@@ -72,8 +93,7 @@ export default function GuestStory() {
           }),
         );
       } else if (data.demo) {
-        // Preview without an AI key — let the meter climb so the experience is felt.
-        setStrength((s) => Math.min(72, s + 12));
+        bumpStrength(Math.min(72, strength + 12));
       }
     } catch {
       setMessages((m) => [
@@ -88,7 +108,6 @@ export default function GuestStory() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {/* Header + strength */}
       <header style={{ padding: '18px 20px 12px', borderBottom: '1px solid var(--gray-100)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/start" style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-700)' }}>
@@ -96,27 +115,27 @@ export default function GuestStory() {
           </Link>
           <span style={{ fontSize: 13, fontWeight: 800 }}>Profile strength {strength}%</span>
         </div>
-        <div style={{ marginTop: 10, height: 8, borderRadius: 999, background: 'var(--gray-100)', overflow: 'hidden' }}>
-          <div style={{ width: `${strength}%`, height: '100%', background: 'var(--spectrum)', transition: 'width .5s cubic-bezier(0.22,1,0.36,1)' }} />
+        <div className="meter-track" style={{ marginTop: 10, height: 8 }}>
+          <div className="meter-fill" style={{ width: `${strength}%` }} />
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--gray-400)' }}>
           Take your time. You can stop anytime — we save your place.
         </p>
       </header>
 
-      {/* Messages */}
       <div ref={scroller} style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {messages.map((m, i) => (
           <div
             key={i}
+            className={i === messages.length - 1 ? 'rise-in' : undefined}
             style={{
               alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '86%',
+              maxWidth: '88%',
               background: m.role === 'user' ? 'var(--black)' : 'var(--gray-050)',
               color: m.role === 'user' ? '#fff' : 'var(--gray-900)',
               border: m.role === 'user' ? 'none' : '1px solid var(--gray-100)',
-              borderRadius: 18,
-              padding: '11px 15px',
+              borderRadius: 20,
+              padding: '12px 16px',
               fontSize: 15.5,
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap',
@@ -126,11 +145,23 @@ export default function GuestStory() {
           </div>
         ))}
         {sending ? (
-          <div style={{ alignSelf: 'flex-start', color: 'var(--gray-400)', fontSize: 14, padding: '4px 6px' }}>…</div>
+          <div className="typing" style={{ alignSelf: 'flex-start', background: 'var(--gray-050)', border: '1px solid var(--gray-100)', borderRadius: 20 }}>
+            <i /><i /><i />
+          </div>
         ) : null}
       </div>
 
-      {/* Input */}
+      {/* Tap-to-answer starters (lowest friction) */}
+      {showOpenerChips ? (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 16px 4px' }}>
+          {OPENER_CHIPS.map((c) => (
+            <button key={c} className="chip" onClick={() => sendText(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div style={{ display: 'flex', gap: 8, padding: '12px 16px 20px', borderTop: '1px solid var(--gray-100)' }}>
         <input
           value={input}
@@ -138,7 +169,7 @@ export default function GuestStory() {
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              send();
+              sendText(input);
             }
           }}
           placeholder="Type your answer…"
@@ -154,7 +185,7 @@ export default function GuestStory() {
           }}
         />
         <button
-          onClick={send}
+          onClick={() => sendText(input)}
           disabled={!input.trim() || sending}
           className="btn btn-spectrum"
           style={{ height: 46, opacity: !input.trim() || sending ? 0.4 : 1 }}
@@ -162,6 +193,19 @@ export default function GuestStory() {
           Send
         </button>
       </div>
+
+      {celebration ? (
+        <div className="celebrate" onClick={() => setCelebration(null)}>
+          <div className="big">
+            {celebration.big.split('\n').map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+          <p style={{ fontSize: 17, fontWeight: 600, maxWidth: 280, margin: 0, opacity: 0.95 }}>
+            {celebration.sub}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

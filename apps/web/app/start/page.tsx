@@ -2,164 +2,105 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-// Marcus's home. Warm, calm, anxious-friendly. The journey laid out as small steps —
-// visible progress, never a wall. Black/white/red with red→blue (flag) energy.
-const STEPS: {
-  n: number;
-  title: string;
-  blurb: string;
-  href?: string;
-  soon?: boolean;
-}[] = [
-  {
-    n: 1,
-    title: 'Tell your story',
-    blurb: 'Talk it through with a guide, one step at a time. No resume.',
-    href: '/start/story',
-  },
-  {
-    n: 2,
-    title: 'Discover your paths',
-    blurb: 'Careers you never pictured — and exactly why each one fits you.',
-    href: '/start/paths',
-  },
-  {
-    n: 3,
-    title: 'Browse open roles',
-    blurb: 'See companies that planted their flag to hire those who served.',
-    href: '/jobs',
-  },
-  {
-    n: 4,
-    title: 'Record your intro video',
-    blurb: '60 seconds: who you are and what you’re excited to do next.',
-    soon: true,
-  },
-  {
-    n: 5,
-    title: 'Take the Full Spectrum read',
-    blurb: 'An honest read on the whole you — and it lifts your profile strength.',
-    soon: true,
-  },
-  {
-    n: 6,
-    title: 'See who’s interested',
-    blurb: 'Who viewed your story, who wants to talk, how you’re growing.',
-    soon: true,
-  },
-];
+// Marcus's front door. The behavioral goal is the lowest possible activation energy:
+// one warm, familiar action (talk — a behavior he already has), not a task list. The
+// reassurances answer the three anxieties before they're felt — time, control,
+// exposure — so starting costs almost nothing.
+const REASSURANCES = ['About 5 minutes', 'Stop anytime', 'Nothing’s public until you say so'];
 
 export default function CandidateHome() {
-  const strength = 6;
-
   return (
-    <main style={{ flex: 1, padding: '28px 22px 40px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-      <div>
-        <p className="display" style={{ fontSize: 18, margin: 0, letterSpacing: 1 }}>
+    <main
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '26px 24px 28px',
+      }}
+    >
+      <div className="fade-in-up" style={{ animationDelay: '0ms' }}>
+        <span className="display" style={{ fontSize: 17, letterSpacing: 1 }}>
           REELWORX NEXTMISSION
-        </p>
-        <div className="spectrum-bar" style={{ width: 56, height: 4, marginTop: 8 }} />
+        </span>
+        <div className="spectrum-bar" style={{ width: 52, height: 4, marginTop: 8 }} />
       </div>
 
-      <div>
-        <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5, margin: 0 }}>
-          Let’s build your next mission.
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 22, paddingTop: 24, paddingBottom: 24 }}>
+        <p
+          className="fade-in-up muted"
+          style={{ animationDelay: '60ms', margin: 0, fontSize: 12.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}
+        >
+          Made for the ones who served
+        </p>
+
+        <h1
+          className="fade-in-up"
+          style={{ animationDelay: '120ms', fontSize: 38, lineHeight: 1.05, fontWeight: 800, letterSpacing: -0.8, margin: 0 }}
+        >
+          Let’s start with
+          <br />
+          your story.
         </h1>
-        <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--gray-700)', marginTop: 10 }}>
-          You served. That matters here. We’ll draw out who you became — and show you
-          where you could go next. No rush, one step at a time.
+
+        <p
+          className="fade-in-up"
+          style={{ animationDelay: '180ms', fontSize: 17, lineHeight: 1.55, color: 'var(--gray-700)', margin: 0 }}
+        >
+          No forms. No resume. Just talk it through, the way you’d tell it to someone
+          who gets it. I’ll take care of the rest.
         </p>
+
+        <div className="fade-in-up" style={{ animationDelay: '240ms', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Link
+            href="/start/story"
+            className="btn btn-spectrum"
+            style={{ height: 56, fontSize: 17, fontWeight: 700, width: '100%' }}
+          >
+            Start the conversation
+          </Link>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {REASSURANCES.map((r) => (
+              <span
+                key={r}
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: 'var(--gray-700)',
+                  background: 'var(--gray-050)',
+                  border: '1px solid var(--gray-100)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '6px 12px',
+                }}
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Profile strength — competence made visible (the calm Wrapped moment) */}
-      <div
-        style={{
-          background: 'var(--gray-050)',
-          border: '1px solid var(--gray-100)',
-          borderRadius: 'var(--radius-lg)',
-          padding: 18,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14, fontWeight: 600 }}>Profile strength</span>
-          <span style={{ fontSize: 14, fontWeight: 800 }}>{strength}%</span>
-        </div>
-        <div style={{ marginTop: 10, height: 10, borderRadius: 999, background: 'var(--gray-100)', overflow: 'hidden' }}>
-          <div style={{ width: `${strength}%`, height: '100%', background: 'var(--spectrum)' }} />
-        </div>
-        <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--gray-400)' }}>
-          Every step you take makes it stronger.
+      <div className="fade-in-up" style={{ animationDelay: '320ms', borderTop: '1px solid var(--gray-100)', paddingTop: 18 }}>
+        <p className="muted" style={{ margin: '0 0 10px', fontSize: 13 }}>
+          Not ready to talk? Wander first — no account needed.
         </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Link href="/start/paths" style={{ fontSize: 15, fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+            <span>See paths that might fit you</span>
+            <span className="muted">›</span>
+          </Link>
+          <Link href="/jobs" style={{ fontSize: 15, fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+            <span>Browse open roles</span>
+            <span className="muted">›</span>
+          </Link>
+        </div>
+        <Link
+          href="/"
+          className="muted"
+          style={{ display: 'block', marginTop: 16, fontSize: 12, textAlign: 'center', textDecoration: 'underline' }}
+        >
+          I’m a company →
+        </Link>
       </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {STEPS.map((s) =>
-          s.soon ? (
-            <div key={s.n} style={stepStyle(true)}>
-              <StepBody {...s} />
-            </div>
-          ) : (
-            <Link key={s.n} href={s.href!} style={{ ...stepStyle(false), textDecoration: 'none' }}>
-              <StepBody {...s} />
-            </Link>
-          ),
-        )}
-      </div>
-
-      <p style={{ fontSize: 13, color: 'var(--gray-400)', textAlign: 'center', marginTop: 4 }}>
-        You can stop anytime — we save your place.
-      </p>
-      <Link href="/" style={{ fontSize: 12, color: 'var(--gray-400)', textAlign: 'center', textDecoration: 'underline' }}>
-        I’m a company →
-      </Link>
     </main>
-  );
-}
-
-function stepStyle(soon: boolean): React.CSSProperties {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    background: 'var(--white)',
-    border: '1px solid var(--gray-100)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 16,
-    opacity: soon ? 0.55 : 1,
-    color: 'var(--gray-900)',
-  };
-}
-
-function StepBody({ n, title, blurb, soon }: { n: number; title: string; blurb: string; soon?: boolean }) {
-  return (
-    <>
-      <div
-        style={{
-          flexShrink: 0,
-          width: 34,
-          height: 34,
-          borderRadius: 999,
-          background: soon ? 'var(--gray-100)' : 'var(--spectrum)',
-          color: soon ? 'var(--gray-400)' : '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 800,
-          fontSize: 15,
-        }}
-      >
-        {n}
-      </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{title}</span>
-          {soon ? (
-            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.5, color: 'var(--gray-400)' }}>SOON</span>
-          ) : null}
-        </div>
-        <p style={{ margin: '3px 0 0', fontSize: 13.5, lineHeight: 1.45, color: 'var(--gray-400)' }}>{blurb}</p>
-      </div>
-      {!soon ? <span style={{ color: 'var(--gray-400)', fontSize: 22 }}>›</span> : null}
-    </>
   );
 }
