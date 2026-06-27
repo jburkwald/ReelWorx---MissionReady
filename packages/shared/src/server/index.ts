@@ -16,7 +16,7 @@ export {
   type SyncedUser,
   type CreateOrganizationInput,
 } from './users';
-export { runStoryTurn } from './agent';
+export { runStoryTurn, type RunStoryTurnOptions } from './agent';
 export {
   saveAssessment,
   type SaveAssessmentInput,
@@ -114,6 +114,13 @@ export {
   type ProfileStrengthFields,
 } from './strength';
 export { parseResume, type ParseResumeResult } from './resume';
+export {
+  voiceProviderConfigured,
+  synthesizeSpeech,
+  transcribeSpeech,
+  type SynthesizeOptions,
+  type SynthesizedSpeech,
+} from './voice-provider';
 export { getPublicProfile, type PublicProfile } from './public-profile';
 export {
   ensureAdvocateForUser,

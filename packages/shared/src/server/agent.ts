@@ -66,8 +66,14 @@ const saveProgressTool: Anthropic.Tool = {
   },
 };
 
+export interface RunStoryTurnOptions {
+  /** Appended to the base system prompt — used by voice mode to shape spoken phrasing. */
+  systemAddendum?: string;
+}
+
 export async function runStoryTurn(
   history: StoryMessage[],
+  opts?: RunStoryTurnOptions,
 ): Promise<StoryTurnResult> {
   const client = getAnthropic();
   // Anthropic requires the first message to be from the user — drop any leading
@@ -82,10 +88,14 @@ export async function runStoryTurn(
     content: m.content,
   }));
 
+  const system = opts?.systemAddendum
+    ? `${STORY_SYSTEM_PROMPT}\n\n${opts.systemAddendum}`
+    : STORY_SYSTEM_PROMPT;
+
   const res = await client.messages.create({
     model: MODELS.agent,
     max_tokens: 2048,
-    system: STORY_SYSTEM_PROMPT,
+    system,
     tools: [saveProgressTool],
     messages,
   });

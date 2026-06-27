@@ -16,6 +16,7 @@ export * from './fit/score';
 export * from './profile/strength';
 export * from './story/types';
 export * from './story/phases';
+export * from './story/voice';
 export * from './jobs/demo';
 export * from './paths/demo';
 export * from './studio/themes';

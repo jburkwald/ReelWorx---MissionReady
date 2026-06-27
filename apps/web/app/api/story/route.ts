@@ -9,6 +9,7 @@ import {
   syncUser,
 } from '@reelworx/shared/server';
 import {
+  VOICE_AGENT,
   recordPhaseComplete,
   storyPhaseComplete,
   type ProfileExtraction,
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { messages?: StoryMessage[] };
+  let body: { messages?: StoryMessage[]; voice?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -63,7 +64,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No candidate profile' }, { status: 409 });
     }
 
-    const { reply, extraction } = await runStoryTurn(messages);
+    const { reply, extraction } = await runStoryTurn(
+      messages,
+      body.voice ? { systemAddendum: VOICE_AGENT.spokenStyleAddendum } : undefined,
+    );
     const merged = mergeIntoProfile(profile.fitProfile, profile.whyEachMove, extraction);
 
     // Strength from the merged profile via the shared registry — the same number the

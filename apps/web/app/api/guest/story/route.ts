@@ -1,5 +1,5 @@
 import { runStoryTurn } from '@reelworx/shared/server';
-import type { StoryMessage } from '@reelworx/shared';
+import { VOICE_AGENT, type StoryMessage } from '@reelworx/shared';
 import { NextResponse } from 'next/server';
 
 // GUEST story endpoint — no auth, no DB. Lets anyone experience the Story Profile agent
@@ -15,7 +15,7 @@ const FALLBACK_REPLIES = [
 ];
 
 export async function POST(req: Request) {
-  let body: { messages?: StoryMessage[] };
+  let body: { messages?: StoryMessage[]; voice?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -27,7 +27,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { reply, extraction } = await runStoryTurn(messages);
+    // Voice mode shapes the WORDS for the ear (short, one question, no markdown).
+    const { reply, extraction } = await runStoryTurn(
+      messages,
+      body.voice ? { systemAddendum: VOICE_AGENT.spokenStyleAddendum } : undefined,
+    );
     return NextResponse.json({ reply, extraction });
   } catch {
     // No ANTHROPIC_API_KEY (or the call failed) — fall back to a scripted guide so the

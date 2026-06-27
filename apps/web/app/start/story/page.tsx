@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   BRAND,
   FOUNDATION_INTRO,
   STORY_OPENER,
+  VOICE_AGENT,
   computeProfileStrength,
   foundationCompleteFromSignals,
   getEntryModes,
@@ -18,6 +19,7 @@ import {
   type StoryMessage,
   type StoryPhaseId,
 } from '@reelworx/shared';
+import { useVoiceAgent, type VoiceAgent } from '../../../lib/useVoiceAgent';
 
 interface GuestStoryResponse {
   reply: string;
@@ -292,7 +294,9 @@ function Conversation({
     ? `Got it — that gives me your record: ${seededResume.headline ?? 'your background'}. ` +
       `A resume can’t show the why, though, and that’s the part companies remember. ` +
       `So tell me: what part of that work actually felt right to you?`
-    : STORY_OPENER;
+    : mode === 'talk'
+      ? VOICE_AGENT.spokenOpener
+      : STORY_OPENER;
 
   const [messages, setMessages] = useState<StoryMessage[]>([
     { role: 'assistant', content: firstAssistant },
@@ -303,9 +307,23 @@ function Conversation({
   const [celebrated, setCelebrated] = useState(false);
   const [celebration, setCelebration] = useState<{ big: string; sub: string } | null>(null);
 
+  // Voice: speak the questions, listen to the answers. Programmable via VOICE_AGENT + sliders.
+  const voice = useVoiceAgent();
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [voicePanel, setVoicePanel] = useState(false);
+  const spokeOpener = useRef(false);
+
+  // Speak the opener once when entering voice mode.
+  useEffect(() => {
+    if (mode === 'talk' && voiceOn && voice.supported.tts && !spokeOpener.current) {
+      spokeOpener.current = true;
+      voice.speak(firstAssistant);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, voiceOn, voice.supported.tts]);
+
   const state = deriveState(acc.current);
   const showOpenerChips = !seededResume && messages.length === 1 && !sending && mode !== 'talk';
-  const showVoiceDemo = mode === 'talk' && !sending;
 
   function scrollDown() {
     requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' }));
@@ -347,10 +365,11 @@ function Conversation({
       const res = await fetch('/api/guest/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, voice: mode === 'talk' }),
       });
       const data: GuestStoryResponse = await res.json();
       setMessages((m) => [...m, { role: 'assistant', content: data.reply }]);
+      if (mode === 'talk' && voiceOn) voice.speak(data.reply);
       afterExtraction(data.extraction, data.demo);
     } catch {
       setMessages((m) => [
@@ -414,15 +433,16 @@ function Conversation({
         </div>
       ) : null}
 
-      {showVoiceDemo ? (
-        <div style={{ padding: '0 16px 4px' }}>
-          <button
-            className="chip"
-            onClick={() => sendText('I spent eight years in Army logistics, ended up running a 45-person section. The part I liked most was a hard day going smooth because the team was ready.')}
-          >
-            🎙 Speak your answer (demo)
-          </button>
-        </div>
+      {mode === 'talk' ? (
+        <VoiceControls
+          voice={voice}
+          voiceOn={voiceOn}
+          setVoiceOn={setVoiceOn}
+          panelOpen={voicePanel}
+          setPanelOpen={setVoicePanel}
+          sending={sending}
+          onTranscript={(t) => sendText(t)}
+        />
       ) : null}
 
       <div style={{ display: 'flex', gap: 8, padding: '12px 16px 20px', borderTop: '1px solid var(--gray-100)' }}>
@@ -523,5 +543,218 @@ function Boost({ title, sub }: { title: string; sub: string }) {
       <span style={{ fontSize: 14.5, fontWeight: 700 }}>{title}</span>
       <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--brand-red)' }}>{sub}</span>
     </div>
+  );
+}
+
+// The spoken-guide controls: talk to answer, hear the questions, and tune the voice live.
+// Programmable defaults come from VOICE_AGENT; these sliders override delivery on the fly.
+const SAMPLE_LINE = "Here's how I sound. Tell me where you served, and we'll go from there.";
+
+function VoiceControls({
+  voice,
+  voiceOn,
+  setVoiceOn,
+  panelOpen,
+  setPanelOpen,
+  sending,
+  onTranscript,
+}: {
+  voice: VoiceAgent;
+  voiceOn: boolean;
+  setVoiceOn: (b: boolean) => void;
+  panelOpen: boolean;
+  setPanelOpen: (b: boolean) => void;
+  sending: boolean;
+  onTranscript: (t: string) => void;
+}) {
+  const enVoices = voice.voices.filter((v) => v.lang?.toLowerCase().startsWith('en'));
+
+  function toggleMic() {
+    if (sending) return;
+    if (voice.listening) {
+      voice.stopListening();
+      return;
+    }
+    voice.listen(onTranscript);
+  }
+
+  function toggleSpeak() {
+    if (voiceOn) voice.cancel();
+    setVoiceOn(!voiceOn);
+  }
+
+  return (
+    <div style={{ padding: '4px 16px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {voice.supported.stt ? (
+          <button
+            onClick={toggleMic}
+            disabled={sending}
+            aria-label={voice.listening ? 'Stop listening' : 'Speak your answer'}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 999,
+              border: 'none',
+              cursor: sending ? 'default' : 'pointer',
+              color: '#fff',
+              fontSize: 22,
+              background: voice.listening ? 'var(--brand-red)' : 'var(--black)',
+              boxShadow: voice.listening ? '0 0 0 6px rgba(228,0,43,0.18)' : 'none',
+              transition: 'box-shadow 0.2s ease, background 0.2s ease',
+              opacity: sending ? 0.5 : 1,
+            }}
+          >
+            {voice.listening ? '■' : '🎤'}
+          </button>
+        ) : null}
+
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>
+            {voice.listening
+              ? 'Listening… tap to stop'
+              : voice.speaking
+                ? 'Speaking…'
+                : voice.supported.stt
+                  ? 'Tap the mic and answer out loud'
+                  : 'Type your answer — I’ll read the questions aloud'}
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.3, color: voice.premium.provider ? 'var(--brand-red)' : 'var(--gray-400)' }}>
+            {voice.premium.provider ? 'HD voice · ElevenLabs' : 'Browser voice'}
+          </div>
+          {!voice.supported.stt ? (
+            <div style={{ fontSize: 12, color: 'var(--gray-400)' }}>
+              Speaking your answers works in Chrome or Edge.
+            </div>
+          ) : null}
+        </div>
+
+        {/* Speaker on/off */}
+        <button
+          onClick={toggleSpeak}
+          aria-label={voiceOn ? 'Mute the guide' : 'Unmute the guide'}
+          className="chip"
+          style={{ borderColor: voiceOn ? 'var(--brand-red)' : 'var(--gray-100)' }}
+        >
+          {voiceOn ? '🔊' : '🔇'}
+        </button>
+        {/* Tune the voice */}
+        <button onClick={() => setPanelOpen(!panelOpen)} aria-label="Voice settings" className="chip">
+          ⚙︎
+        </button>
+      </div>
+
+      {/* Fallback sample so the demo still walks where speech recognition is unavailable. */}
+      {!voice.supported.stt ? (
+        <div style={{ marginTop: 8 }}>
+          <button
+            className="chip"
+            onClick={() =>
+              onTranscript(
+                'I spent eight years in Army logistics, ended up running a 45-person section. The part I liked most was a hard day going smooth because the team was ready.',
+              )
+            }
+          >
+            Use a sample spoken answer
+          </button>
+        </div>
+      ) : null}
+
+      {panelOpen ? (
+        <div
+          style={{
+            marginTop: 10,
+            border: '1px solid var(--gray-100)',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--gray-050)',
+            padding: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.3, color: 'var(--gray-400)', textTransform: 'uppercase' }}>
+            Voice · {VOICE_AGENT.name} {voice.premium.provider ? '· HD (ElevenLabs)' : ''}
+          </div>
+          {voice.premium.provider ? (
+            <div style={{ fontSize: 12, color: 'var(--gray-700)', lineHeight: 1.5 }}>
+              The HD voice is set in code (packages/shared/src/story/voice.ts). Speed applies
+              live; the picker below tunes the browser fallback voice.
+            </div>
+          ) : null}
+
+          {voice.supported.tts ? (
+            <>
+              <label style={{ fontSize: 13, fontWeight: 600 }}>
+                Voice
+                <select
+                  value={voice.settings.voiceURI ?? ''}
+                  onChange={(e) => voice.setSettings({ voiceURI: e.target.value })}
+                  style={{ width: '100%', height: 40, marginTop: 4, borderRadius: 10, border: '1px solid var(--gray-100)', background: '#fff', padding: '0 10px', fontFamily: 'var(--font-body)' }}
+                >
+                  {enVoices.map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <Slider
+                label={`Speed · ${voice.settings.rate.toFixed(2)}x`}
+                min={0.7}
+                max={1.3}
+                value={voice.settings.rate}
+                onChange={(rate) => voice.setSettings({ rate })}
+              />
+              <Slider
+                label={`Pitch · ${voice.settings.pitch.toFixed(2)}`}
+                min={0.6}
+                max={1.5}
+                value={voice.settings.pitch}
+                onChange={(pitch) => voice.setSettings({ pitch })}
+              />
+
+              <button className="btn btn-ghost" style={{ height: 40 }} onClick={() => voice.speak(SAMPLE_LINE)}>
+                Hear a sample
+              </button>
+            </>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--gray-700)' }}>
+              This browser can’t speak aloud. Try Chrome or Edge to hear the guide.
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Slider({
+  label,
+  min,
+  max,
+  value,
+  onChange,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  value: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <label style={{ fontSize: 13, fontWeight: 600, display: 'block' }}>
+      {label}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={0.05}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{ width: '100%', marginTop: 6, accentColor: 'var(--brand-red)' }}
+      />
+    </label>
   );
 }
