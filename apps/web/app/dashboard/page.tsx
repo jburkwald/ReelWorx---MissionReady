@@ -4,6 +4,7 @@ import { UserButton } from '@clerk/nextjs';
 import { BRAND } from '@reelworx/shared';
 import { getReadyInviteBalance, prisma } from '@reelworx/shared/server';
 import { getOrProvisionUser } from '../../lib/db-user';
+import { DemoBadge } from '../../components/DemoBadge';
 import { createOrganization } from './actions';
 
 // Protected by clerkMiddleware (proxy.ts → auth.protect on /dashboard).
@@ -45,7 +46,10 @@ export default async function DashboardPage() {
           <Link href="/" className="display" style={{ fontSize: 22 }}>
             {BRAND.product}
           </Link>
-          <UserButton />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <DemoBadge />
+            <UserButton />
+          </div>
         </div>
         <div className="spectrum-bar" style={{ borderRadius: 0 }} />
       </header>

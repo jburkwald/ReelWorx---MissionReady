@@ -2,6 +2,7 @@
 
 import {
   getRole,
+  isDbConfigured,
   prisma,
   reachOutToCandidate,
   suggestMatchesForRole,
@@ -13,6 +14,11 @@ import { getOrProvisionUser } from '../../../../../lib/db-user';
 // narrate the top few, and persist them. Costed and explicit (it spends AI), so it's an
 // action — not something a page view silently triggers on every render.
 export async function runFitReadAction(roleId: string) {
+  // Demo mode: the Fit Read is already shown from sample data — just refresh, no DB write.
+  if (!isDbConfigured()) {
+    revalidatePath(`/dashboard/roles/${roleId}/matches`);
+    return;
+  }
   const user = await getOrProvisionUser();
   const org = user?.organizationAdmins[0]?.organization;
   if (!user || !org) return;
@@ -30,6 +36,10 @@ export async function runFitReadAction(roleId: string) {
 // enforced inside reachOutToCandidate (the match must belong to the admin's org); an
 // out-of-tokens outcome is reflected by the revalidated balance on the page.
 export async function reachOutAction(roleId: string, matchId: string) {
+  if (!isDbConfigured()) {
+    revalidatePath(`/dashboard/roles/${roleId}/matches`);
+    return;
+  }
   const user = await getOrProvisionUser();
   const org = user?.organizationAdmins[0]?.organization;
   if (!user || !org) return;

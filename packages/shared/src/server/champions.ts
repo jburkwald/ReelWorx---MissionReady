@@ -7,6 +7,7 @@
 // Advocate(type: champion); their link is a ShareLink; arrivals are CaptureLeads.
 
 import { createShareLink } from './advocacy';
+import { isDbConfigured, demoChampions } from './demo';
 import { type PrismaClient } from '../generated/prisma/client';
 
 interface ChampionTracking {
@@ -44,6 +45,8 @@ export async function createChampion(
 }
 
 export async function listChampions(prisma: PrismaClient): Promise<ChampionView[]> {
+  if (!isDbConfigured()) return demoChampions();
+
   const advocates = await prisma.advocate.findMany({
     where: { type: 'champion' },
     orderBy: { createdAt: 'desc' },

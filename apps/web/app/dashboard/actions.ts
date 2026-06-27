@@ -3,6 +3,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import {
   createOrganizationForAdmin,
+  isDbConfigured,
   prisma,
   syncUser,
 } from '@reelworx/shared/server';
@@ -12,6 +13,11 @@ import { revalidatePath } from 'next/cache';
 // the current user as its admin. The planted-flag statement is a first-class trust
 // signal (relatedness), captured here rather than as a free-text afterthought.
 export async function createOrganization(formData: FormData) {
+  // Demo mode already provisions a workspace (Ridgeline Logistics) — nothing to create.
+  if (!isDbConfigured()) {
+    revalidatePath('/dashboard');
+    return;
+  }
   const { userId } = await auth();
   if (!userId) return;
 

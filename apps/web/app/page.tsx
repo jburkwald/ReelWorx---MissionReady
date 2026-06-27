@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BRAND } from '@reelworx/shared';
+import { isDbConfigured } from '@reelworx/shared/server';
 
 // Public planted-flag home for companies (Karen). Calm Apple structure; the single
 // Wrapped moment is the spectrum-gradient headline. Exploration is free by design —
@@ -7,8 +8,10 @@ import { BRAND } from '@reelworx/shared';
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
+  const demo = !isDbConfigured();
   return (
     <main>
+      {demo ? <DemoLaunchpad /> : null}
       <header className="container" style={{ paddingTop: 28, paddingBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="display" style={{ fontSize: 26 }}>
@@ -103,5 +106,87 @@ export default function HomePage() {
         </Link>
       </footer>
     </main>
+  );
+}
+
+// Shown only in keyless demo mode (no DATABASE_URL): a single, obvious place to walk the
+// FULL product — Marcus's mobile-shaped candidate journey and Karen's company dashboard —
+// with no sign-in and no setup. Disappears the moment a real backend is configured.
+function DemoLaunchpad() {
+  return (
+    <div style={{ background: 'var(--black)', color: 'var(--white)' }}>
+      <div className="container" style={{ paddingTop: 24, paddingBottom: 26 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(255,255,255,0.22)',
+              borderRadius: 'var(--radius-full)',
+              padding: '5px 12px',
+            }}
+          >
+            <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--brand-red)' }} />
+            Demo mode · no sign-in, sample data
+          </span>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
+            Walk the whole thing. Both sides are live below.
+          </span>
+        </div>
+
+        <div
+          style={{
+            marginTop: 16,
+            display: 'grid',
+            gap: 14,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          }}
+        >
+          <Link
+            href="/start"
+            style={{
+              display: 'block',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid rgba(255,255,255,0.16)',
+              background: 'rgba(255,255,255,0.04)',
+              padding: 18,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--brand-red)' }}>
+              VETERAN APP · MARCUS
+            </div>
+            <div style={{ fontSize: 19, fontWeight: 800, marginTop: 6 }}>Enter the veteran experience →</div>
+            <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.72)', marginTop: 6, lineHeight: 1.5 }}>
+              The mobile-shaped journey: tell your story, discover paths, get seen — no resume.
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard"
+            style={{
+              display: 'block',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid rgba(255,255,255,0.16)',
+              background: 'rgba(255,255,255,0.04)',
+              padding: 18,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: '#7da2ff' }}>
+              COMPANY DASHBOARD · KAREN
+            </div>
+            <div style={{ fontSize: 19, fontWeight: 800, marginTop: 6 }}>Enter the company experience →</div>
+            <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.72)', marginTop: 6, lineHeight: 1.5 }}>
+              Ridgeline Logistics’ workspace: roles, the Fit Read, people search, insights, champions.
+            </div>
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

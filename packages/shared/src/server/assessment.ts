@@ -6,7 +6,7 @@
 // profile-strength meter (the assessment is a sizeable, earned jump) and logs the event,
 // so the candidate's "taking it raised my strength" moment is real and on the flywheel.
 
-import { computeProfileCompleteness } from '../story/completeness';
+import { profileStrengthScoreForProfile } from './strength';
 import { scoreAssessment } from '../assessment/score';
 import type { AssessmentResponses } from '../assessment/types';
 import { logEvent } from './events';
@@ -42,24 +42,14 @@ export async function saveAssessment(
     emotionalIntelligence: scores.emotionalIntelligence,
   };
 
-  const skills =
-    (existing.skillsExperience as { translatedSkills?: string[] } | undefined)
-      ?.translatedSkills ?? [];
-  const values =
-    (existing.motivationValues as { coreValues?: string[] } | undefined)?.coreValues ?? [];
-  const whyEachMove = Array.isArray(profile.whyEachMove) ? profile.whyEachMove.length : 0;
-
-  const completeness = computeProfileCompleteness({
-    hasIntroVideo: Boolean(profile.videoIntroUrl),
+  // Recompute strength from the live profile with the assessment now merged in (the merged
+  // fitProfile carries the personality block, so the assessment component reads complete).
+  const completeness = profileStrengthScoreForProfile({
     headline: profile.headline,
-    skillsCount: skills.length,
-    valuesCount: values.length,
-    whyEachMoveCount: whyEachMove,
-    hasFitProfile: true,
-    hasAssessment: true,
-    chaptersCount: Array.isArray(profile.livingProfileChapters)
-      ? profile.livingProfileChapters.length
-      : 0,
+    fitProfile: merged,
+    whyEachMove: profile.whyEachMove,
+    videoIntroUrl: profile.videoIntroUrl,
+    videoIntroAssetId: profile.videoIntroAssetId,
   });
 
   await prisma.profile.update({

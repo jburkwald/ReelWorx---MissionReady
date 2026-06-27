@@ -7,6 +7,7 @@
 // a manual search always agree.
 
 import { countNewCandidates } from './search';
+import { isDbConfigured, demoAlerts } from './demo';
 import { type PrismaClient } from '../generated/prisma/client';
 
 export interface AlertView {
@@ -40,6 +41,8 @@ export async function listAlerts(
   prisma: PrismaClient,
   organizationId: string,
 ): Promise<AlertView[]> {
+  if (!isDbConfigured()) return demoAlerts();
+
   const alerts = await prisma.alert.findMany({
     where: { organizationId },
     orderBy: { createdAt: 'desc' },

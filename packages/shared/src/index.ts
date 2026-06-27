@@ -6,14 +6,16 @@
 // that lives behind @reelworx/shared/server.
 
 export * from './brand';
+export * from './config';
 export * from './theme/tokens';
 export * from './types/domain';
 export * from './types/fit';
 export * from './types/credibility';
 export * from './types/paths';
 export * from './fit/score';
+export * from './profile/strength';
 export * from './story/types';
-export * from './story/completeness';
+export * from './story/phases';
 export * from './jobs/demo';
 export * from './paths/demo';
 export * from './studio/themes';

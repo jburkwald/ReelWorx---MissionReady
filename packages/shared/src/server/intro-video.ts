@@ -10,8 +10,7 @@
 // finishing it is an earned jump, credited the moment the asset exists (even mid-encode),
 // so the candidate's payoff doesn't wait on Mux.
 
-import { computeProfileCompleteness } from '../story/completeness';
-import { hasAssessmentScores } from '../assessment/score';
+import { profileStrengthScoreForProfile } from './strength';
 import { media } from './media';
 import { logEvent } from './events';
 import type { DirectUpload } from '../media/types';
@@ -57,25 +56,17 @@ export async function saveIntroVideo(
 
   const hlsUrl = asset.playback?.hlsUrl ?? null;
 
-  // Recompute strength from the live profile, now crediting the intro video.
-  const fit = (profile.fitProfile ?? {}) as {
-    skillsExperience?: { translatedSkills?: string[] };
-    motivationValues?: { coreValues?: string[] };
-  };
-  const completeness = computeProfileCompleteness({
-    hasIntroVideo: true,
-    headline: profile.headline,
-    skillsCount: fit.skillsExperience?.translatedSkills?.length ?? 0,
-    valuesCount: fit.motivationValues?.coreValues?.length ?? 0,
-    whyEachMoveCount: Array.isArray(profile.whyEachMove) ? profile.whyEachMove.length : 0,
-    hasFitProfile:
-      (fit.skillsExperience?.translatedSkills?.length ?? 0) > 0 ||
-      (fit.motivationValues?.coreValues?.length ?? 0) > 0,
-    hasAssessment: hasAssessmentScores(profile.fitProfile),
-    chaptersCount: Array.isArray(profile.livingProfileChapters)
-      ? profile.livingProfileChapters.length
-      : 0,
-  });
+  // Recompute strength from the live profile, now crediting the intro video as ready.
+  const completeness = profileStrengthScoreForProfile(
+    {
+      headline: profile.headline,
+      fitProfile: profile.fitProfile,
+      whyEachMove: profile.whyEachMove,
+      videoIntroUrl: hlsUrl,
+      videoIntroAssetId: asset.assetId,
+    },
+    { videoStatus: 'ready' },
+  );
 
   await prisma.profile.update({
     where: { id: profile.id },

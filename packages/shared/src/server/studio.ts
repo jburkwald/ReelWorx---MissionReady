@@ -10,6 +10,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { getAnthropic, MODELS } from './ai';
 import { getStoryTheme } from '../studio/themes';
 import { logEvent } from './events';
+import { isDbConfigured, demoStudioReels } from './demo';
 import { type PrismaClient } from '../generated/prisma/client';
 
 async function generateHook(input: {
@@ -102,6 +103,8 @@ export async function listStudioReels(
   prisma: PrismaClient,
   organizationId: string,
 ): Promise<StudioReelView[]> {
+  if (!isDbConfigured()) return demoStudioReels();
+
   const reels = await prisma.reel.findMany({
     where: { organizationId, themeId: { not: null } },
     orderBy: { createdAt: 'desc' },

@@ -7,9 +7,26 @@ import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
 import { useApi, WEB_URL } from '../../lib/api';
 
 // Mirrors shared/server CandidateDashboard — kept local (mobile stays server-free).
+type ComponentStatus = 'complete' | 'incomplete' | 'processing' | 'locked';
+interface StrengthComponent {
+  id: string;
+  label: string;
+  blurb: string;
+  weight: number;
+  status: ComponentStatus;
+  awarded: number;
+}
+interface ProfileStrength {
+  score: number;
+  maxScore: number;
+  tier: { key: string; label: string; blurb: string };
+  discoverable: boolean;
+  components: StrengthComponent[];
+}
 interface CandidateDashboard {
   candidateId: string;
   completenessScore: number;
+  strength: ProfileStrength;
   interestedCount: number;
   interested: { organizationName: string; roleTitle: string | null }[];
   savedPaths: number;
@@ -74,7 +91,7 @@ export default function Progress() {
           </Text>
         ) : (
           <>
-            {/* Strength — the calm Wrapped meter. */}
+            {/* Strength — the registry meter, components in the open (Change 1 + 4). */}
             <View
               style={{
                 backgroundColor: colors.gray050,
@@ -85,10 +102,16 @@ export default function Progress() {
                 gap: spacing.md,
               }}
             >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>Profile strength</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <View>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>Profile strength</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textMuted, marginTop: 2 }}>
+                    {data.strength.tier.label} · {data.strength.tier.blurb}
+                  </Text>
+                </View>
                 <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>
-                  {data.completenessScore}%
+                  {data.strength.score}
+                  <Text style={{ fontSize: 13, color: colors.textMuted }}> / {data.strength.maxScore}</Text>
                 </Text>
               </View>
               <View style={{ height: 10, borderRadius: radius.full, backgroundColor: colors.gray100, overflow: 'hidden' }}>
@@ -96,9 +119,42 @@ export default function Progress() {
                   colors={spectrumColors}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={{ width: `${data.completenessScore}%`, height: '100%', borderRadius: radius.full }}
+                  style={{ width: `${data.strength.score}%`, height: '100%', borderRadius: radius.full }}
                 />
               </View>
+
+              <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+                {data.strength.components.map((c) => (
+                  <View key={c.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: radius.full,
+                        backgroundColor: c.status === 'complete' ? colors.accent : colors.gray100,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: c.status === 'complete' ? '#fff' : colors.textMuted }}>
+                        {c.status === 'complete' ? '✓' : c.status === 'locked' ? '🔒' : c.status === 'processing' ? '…' : ''}
+                      </Text>
+                    </View>
+                    <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: c.status === 'locked' ? colors.textMuted : colors.text }}>
+                      {c.label}
+                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: c.status === 'complete' ? colors.accent : colors.textMuted }}>
+                      {c.status === 'locked' ? 'soon' : `+${c.weight}`}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              {data.strength.components.some((c) => c.status === 'locked') ? (
+                <Text style={{ fontSize: 12, color: colors.textMuted, lineHeight: 17 }}>
+                  The locked slot is reserved for later. It is not your gap to close — your
+                  strength tops out at {data.strength.maxScore} until it ships.
+                </Text>
+              ) : null}
             </View>
 
             {/* One Profile, Two Outputs (1.3) — your story link IS your new résumé. */}

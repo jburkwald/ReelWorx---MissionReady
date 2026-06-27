@@ -6,6 +6,7 @@
 // (headline + the decoded business summary). Respects visibility — never surfaces a
 // candidate who chose `private`.
 
+import { isDbConfigured, demoPeople } from './demo';
 import { type PrismaClient, type Prisma } from '../generated/prisma/client';
 
 export interface PeopleSearchResult {
@@ -57,6 +58,8 @@ export async function searchCandidates(
   prisma: PrismaClient,
   input: SearchCandidatesInput,
 ): Promise<PeopleSearchResult[]> {
+  if (!isDbConfigured()) return demoPeople({ query: input.query, place: input.place });
+
   const profiles = await prisma.profile.findMany({
     where: candidateWhere(input.query, input.place),
     include: { user: true, roots: true },

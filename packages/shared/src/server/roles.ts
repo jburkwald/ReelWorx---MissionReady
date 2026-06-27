@@ -7,6 +7,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { getAnthropic, MODELS } from './ai';
+import { isDbConfigured, demoRoles, demoRole } from './demo';
 import { logEvent } from './events';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import type { IdealProfile } from '../types/fit';
@@ -159,6 +160,8 @@ export async function createRole(prisma: PrismaClient, input: CreateRoleInput) {
 }
 
 export function listRolesForOrg(prisma: PrismaClient, organizationId: string) {
+  // Keyless demo mode — walkable with no database (see ./demo).
+  if (!isDbConfigured()) return Promise.resolve(demoRoles());
   return prisma.role.findMany({
     where: { organizationId },
     orderBy: { createdAt: 'desc' },
@@ -167,6 +170,7 @@ export function listRolesForOrg(prisma: PrismaClient, organizationId: string) {
 }
 
 export function getRole(prisma: PrismaClient, id: string) {
+  if (!isDbConfigured()) return Promise.resolve(demoRole(id));
   return prisma.role.findUnique({ where: { id }, include: { reels: true } });
 }
 

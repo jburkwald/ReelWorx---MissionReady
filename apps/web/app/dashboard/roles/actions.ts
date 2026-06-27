@@ -4,6 +4,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import {
   createRole,
   deriveIdealProfile,
+  isDbConfigured,
   prisma,
   syncUser,
 } from '@reelworx/shared/server';
@@ -12,6 +13,10 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function createRoleAction(formData: FormData) {
+  // Demo mode: roles aren't persisted — drop the user onto a sample role detail so the
+  // flow still resolves somewhere real-feeling.
+  if (!isDbConfigured()) redirect('/dashboard/roles/demo-role-ops');
+
   const { userId } = await auth();
   if (!userId) return;
 

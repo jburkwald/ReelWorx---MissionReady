@@ -19,6 +19,7 @@ import type { DecodedCredibility } from '../types/credibility';
 import { buildFitRead } from './narrate';
 import { ensureDecodedCredibility } from './decode';
 import { EVENT_TYPES, logEvent } from './events';
+import { isDbConfigured, demoMatches } from './demo';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 
 /** Everything the company surface needs about one suggested person — fully serializable. */
@@ -166,6 +167,9 @@ export async function getMatchesForRole(
   prisma: PrismaClient,
   roleId: string,
 ): Promise<SuggestedMatch[]> {
+  // Keyless demo mode — a believable Fit Read with no database (see ./demo).
+  if (!isDbConfigured()) return demoMatches();
+
   const matches = await prisma.match.findMany({
     where: { roleId },
     orderBy: { fitScore: 'desc' },

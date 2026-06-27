@@ -7,6 +7,9 @@
 // saved paths); we never invent a number to make the screen look busier.
 
 import { getInviteBalance } from './tokens';
+import { isDbConfigured, demoEmployerDashboard, demoCandidateDashboard } from './demo';
+import { computeProfileStrengthForProfile } from './strength';
+import type { ProfileStrength } from '../profile/strength';
 import { type PrismaClient } from '../generated/prisma/client';
 
 // ── Employer (6.1) ─────────────────────────────────────────────────────────
@@ -35,6 +38,8 @@ export async function getEmployerDashboard(
   prisma: PrismaClient,
   organizationId: string,
 ): Promise<EmployerDashboard> {
+  if (!isDbConfigured()) return demoEmployerDashboard();
+
   const [openRoles, distinctPeople, byStatus, tokensLeft, tokensSpentThisMonth, recentRows] =
     await Promise.all([
       prisma.role.count({ where: { organizationId } }),
@@ -92,7 +97,8 @@ export interface InterestedCompany {
 
 export interface CandidateDashboard {
   candidateId: string; // for building the public profile share link (Feature 1.3)
-  completenessScore: number;
+  completenessScore: number; // == strength.score; kept for back-compat
+  strength: ProfileStrength; // the registry breakdown — same shape both sides (6.2)
   interestedCount: number;
   interested: InterestedCompany[];
   savedPaths: number;
@@ -105,6 +111,8 @@ export async function getCandidateDashboard(
   prisma: PrismaClient,
   userId: string,
 ): Promise<CandidateDashboard> {
+  if (!isDbConfigured()) return demoCandidateDashboard();
+
   const [profile, interestedRows, savedPaths, openPaths] = await Promise.all([
     prisma.profile.findUnique({ where: { userId } }),
     prisma.match.findMany({
@@ -118,9 +126,20 @@ export async function getCandidateDashboard(
 
   const fit = (profile?.fitProfile ?? {}) as { personality?: Record<string, unknown> };
 
+  // Strength from the live profile via the shared registry — authoritative for display, so
+  // the meter never shows a stale stored number.
+  const strength = computeProfileStrengthForProfile({
+    headline: profile?.headline ?? null,
+    fitProfile: profile?.fitProfile ?? null,
+    whyEachMove: profile?.whyEachMove ?? null,
+    videoIntroUrl: profile?.videoIntroUrl ?? null,
+    videoIntroAssetId: profile?.videoIntroAssetId ?? null,
+  });
+
   return {
     candidateId: userId,
-    completenessScore: profile?.completenessScore ?? 0,
+    completenessScore: strength.score,
+    strength,
     interestedCount: interestedRows.length,
     interested: interestedRows.map((m) => ({
       organizationName: m.organization.name,

@@ -6,6 +6,7 @@
 // Source distinguishes granted vs purchased so the revenue line is queryable from day one
 // (purchased top-ups via Stripe are deferred — the schema already holds `stripeRef`).
 
+import { isDbConfigured, DEMO_INVITE_BALANCE } from './demo';
 import { type PrismaClient } from '../generated/prisma/client';
 
 // Karen wants "ten to fifteen a week" — a monthly allotment in that spirit, deliberately
@@ -56,6 +57,7 @@ export async function getReadyInviteBalance(
   prisma: PrismaClient,
   organizationId: string,
 ): Promise<number> {
+  if (!isDbConfigured()) return DEMO_INVITE_BALANCE;
   await ensureMonthlyInviteTokens(prisma, organizationId);
   return getInviteBalance(prisma, organizationId);
 }

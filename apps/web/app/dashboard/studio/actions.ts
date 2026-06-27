@@ -1,11 +1,15 @@
 'use server';
 
-import { createStudioReel, prisma } from '@reelworx/shared/server';
+import { createStudioReel, isDbConfigured, prisma } from '@reelworx/shared/server';
 import { revalidatePath } from 'next/cache';
 import { getOrProvisionUser } from '../../../lib/db-user';
 
 // Assemble a story Reel from a locked theme + the company's own footage/link (Feature 5.1).
 export async function createStudioReelAction(formData: FormData) {
+  if (!isDbConfigured()) {
+    revalidatePath('/dashboard/studio');
+    return;
+  }
   const user = await getOrProvisionUser();
   const org = user?.organizationAdmins[0]?.organization;
   if (!user || !org) return;

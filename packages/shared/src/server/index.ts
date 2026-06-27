@@ -107,6 +107,13 @@ export {
   type RecentReachOut,
   type InterestedCompany,
 } from './dashboard';
+export {
+  strengthInputFromProfile,
+  computeProfileStrengthForProfile,
+  profileStrengthScoreForProfile,
+  type ProfileStrengthFields,
+} from './strength';
+export { parseResume, type ParseResumeResult } from './resume';
 export { getPublicProfile, type PublicProfile } from './public-profile';
 export {
   ensureAdvocateForUser,
@@ -128,3 +135,18 @@ export {
   buildDigest,
   type DigestItem,
 } from './capture';
+export {
+  isDbConfigured,
+  demoCompanyUser,
+  demoRoles,
+  demoRole,
+  demoMatches,
+  demoEmployerDashboard,
+  demoCandidateDashboard,
+  demoPeople,
+  demoChampions,
+  demoAlerts,
+  demoStudioReels,
+  DEMO_ORG_ID,
+  DEMO_INVITE_BALANCE,
+} from './demo';

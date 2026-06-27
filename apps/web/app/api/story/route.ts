@@ -4,14 +4,16 @@ import {
   logEvent,
   Prisma,
   prisma,
+  profileStrengthScoreForProfile,
   runStoryTurn,
   syncUser,
 } from '@reelworx/shared/server';
 import {
-  computeProfileCompleteness,
-  hasAssessmentScores,
+  recordPhaseComplete,
+  storyPhaseComplete,
   type ProfileExtraction,
   type StoryMessage,
+  type StoryPhaseId,
 } from '@reelworx/shared';
 import { NextResponse } from 'next/server';
 
@@ -64,21 +66,15 @@ export async function POST(req: Request) {
     const { reply, extraction } = await runStoryTurn(messages);
     const merged = mergeIntoProfile(profile.fitProfile, profile.whyEachMove, extraction);
 
-    const completeness = computeProfileCompleteness({
-      // Asset id is set the moment the intro video exists (even mid-encode), so credit
-      // it even before the playback URL is pinned.
-      hasIntroVideo: Boolean(profile.videoIntroUrl || profile.videoIntroAssetId),
+    // Strength from the merged profile via the shared registry — the same number the
+    // candidate sees on web and mobile. Foundation completes once the record + story
+    // signals are present; the assessment block (if any) is preserved inside `merged`.
+    const completeness = profileStrengthScoreForProfile({
       headline: extraction?.headline ?? profile.headline,
-      skillsCount: merged.skills.length,
-      valuesCount: merged.values.length,
-      whyEachMoveCount: merged.whyEachMove.length,
-      hasFitProfile: merged.skills.length > 0 || merged.values.length > 0,
-      // Preserve assessment credit: the Story flow never writes a personality block, so
-      // its presence means the Full Spectrum Assessment was already taken.
-      hasAssessment: hasAssessmentScores(merged.fitProfile),
-      chaptersCount: Array.isArray(profile.livingProfileChapters)
-        ? profile.livingProfileChapters.length
-        : 0,
+      fitProfile: merged.fitProfile,
+      whyEachMove: merged.whyEachMove,
+      videoIntroUrl: profile.videoIntroUrl,
+      videoIntroAssetId: profile.videoIntroAssetId,
     });
 
     await prisma.profile.update({
@@ -98,7 +94,20 @@ export async function POST(req: Request) {
       metadata: { saved: Boolean(extraction), completeness },
     });
 
-    return NextResponse.json({ reply, completeness });
+    // Which foundation phase the candidate is in, so the app can show "Phase X of 3".
+    const fitVals = (merged.fitProfile.motivationValues ?? {}) as { whatDrivesThem?: string };
+    const signals = {
+      headline: extraction?.headline ?? profile.headline,
+      skillsCount: merged.skills.length,
+      whyEachMoveCount: merged.whyEachMove.length,
+      valuesCount: merged.values.length,
+      hasWhatDrives: Boolean(fitVals.whatDrivesThem),
+    };
+    const recordDone = recordPhaseComplete(signals);
+    const storyDone = storyPhaseComplete(signals);
+    const phase: StoryPhaseId = !recordDone ? 'record' : !storyDone ? 'story' : 'boosts';
+
+    return NextResponse.json({ reply, completeness, phase, foundationComplete: recordDone && storyDone });
   } catch (err) {
     // Most likely ANTHROPIC_API_KEY or DATABASE_URL not configured yet.
     return NextResponse.json(

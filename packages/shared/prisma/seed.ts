@@ -45,7 +45,7 @@ const DEMOS: Demo[] = [
     summary: 'Led a 40-person logistics section accountable for several million dollars of equipment with zero loss; promoted ahead of peers for dependable execution under pressure.',
     proof: ['Led 40 people', 'Accountable for millions in equipment', 'Advanced ahead of peers'],
     valuesFit: 'Driven by accountability and keeping the mission moving — thrives where reliability is the job.',
-    completeness: 86,
+    completeness: 60,
     roots: [{ place: 'Columbus, OH', isPrimary: true }, { place: 'Dayton, OH' }],
   },
   {
@@ -64,7 +64,7 @@ const DEMOS: Demo[] = [
     summary: 'Ran unit recruiting and retention, building trust quickly with people from every background; a natural at turning a first conversation into a lasting working relationship.',
     proof: ['Led recruiting + retention', 'Built trust across diverse teams', 'Top-rated communicator'],
     valuesFit: 'Energized by people and relationships — a fit for sales, recruiting, or any front-line, human-first role.',
-    completeness: 81,
+    completeness: 60,
     roots: [{ place: 'Austin, TX', isPrimary: true }],
   },
   {
@@ -83,7 +83,7 @@ const DEMOS: Demo[] = [
     summary: 'Diagnosed and repaired complex avionics under tight timelines where an error grounds an aircraft; trusted with the hardest faults nobody else could trace.',
     proof: ['Owned mission-critical diagnostics', 'Trusted with the hardest faults', 'Zero-defect documentation record'],
     valuesFit: 'Driven by precision and mastery — a fit for technical, high-stakes, detail-owned work.',
-    completeness: 78,
+    completeness: 60,
     roots: [{ place: 'Detroit, MI', isPrimary: true }, { place: 'Toledo, OH' }],
   },
   {
@@ -102,7 +102,7 @@ const DEMOS: Demo[] = [
     summary: 'Led a medical team in high-pressure field conditions, making fast calls that kept people safe and training others to do the same; steady when everyone else is rattled.',
     proof: ['Led a field medical team', 'Made high-stakes calls under pressure', 'Trained and mentored peers'],
     valuesFit: 'Anchored by care and composure under pressure — a fit for operations, safety, or people-leadership roles.',
-    completeness: 88,
+    completeness: 60,
     roots: [{ place: 'San Diego, CA', isPrimary: true }],
   },
   {
@@ -121,7 +121,7 @@ const DEMOS: Demo[] = [
     summary: 'Synthesized messy, high-volume information into clear assessments leaders acted on; equally comfortable in the weeds of the data and briefing the decision-maker.',
     proof: ['Briefed senior decision-makers', 'Turned raw data into action', 'Recognized for analytic rigor'],
     valuesFit: 'Driven by curiosity and rigor — a fit for analytics, research, and strategy roles.',
-    completeness: 79,
+    completeness: 60,
     roots: [{ place: 'Columbus, OH', isPrimary: true }],
   },
 ];
