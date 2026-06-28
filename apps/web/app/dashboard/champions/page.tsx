@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
+import QRCode from 'qrcode';
 import { listChampions, prisma, type ChampionView } from '@reelworx/shared/server';
 import { createChampionAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
 // Champion On-Ramp admin (Feature 8.1). Register a counselor's office, hand them an invite
-// link (print a QR from it), and watch members come in. QR-image rendering is a deliberate
-// follow-on — the link is the on-ramp; the office can generate a QR from it today.
+// link AND a printable QR code, and watch members come in. The QR is generated server-side
+// (no external service) so an office can post it at a transition desk today.
 export default async function ChampionsPage() {
   let champions: ChampionView[] = [];
   let dbDown = false;
@@ -20,6 +21,21 @@ export default async function ChampionsPage() {
   const h = await headers();
   const origin =
     h.get('origin') ?? (h.get('host') ? `https://${h.get('host')}` : '');
+
+  // Render each champion's invite link as a scannable QR (data URL, no external call).
+  const qrByCode: Record<string, string> = {};
+  for (const c of champions) {
+    if (!c.code) continue;
+    try {
+      qrByCode[c.code] = await QRCode.toDataURL(`${origin}/c/${c.code}`, {
+        width: 132,
+        margin: 1,
+        color: { dark: '#0a0a0a', light: '#ffffff' },
+      });
+    } catch {
+      /* leave the code without a QR if rendering fails */
+    }
+  }
 
   return (
     <main style={{ minHeight: '100dvh', background: 'var(--gray-050)' }}>
@@ -79,10 +95,37 @@ export default async function ChampionsPage() {
                   </div>
                 </div>
                 {c.code ? (
-                  <p style={{ margin: '14px 0 0', fontSize: 14 }}>
-                    <span className="muted">Invite link: </span>
-                    <code style={{ fontSize: 13 }}>{origin}/c/{c.code}</code>
-                  </p>
+                  <div style={{ marginTop: 14, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {qrByCode[c.code] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={qrByCode[c.code]}
+                        alt={`QR code linking to the ${c.officeName ?? 'office'} invite`}
+                        width={132}
+                        height={132}
+                        style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-100)', background: '#fff' }}
+                      />
+                    ) : null}
+                    <div style={{ minWidth: 200 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--gray-700)' }}>
+                        Print this QR for the office
+                      </p>
+                      <p style={{ margin: '6px 0 0', fontSize: 14 }}>
+                        <span className="muted">Invite link: </span>
+                        <code style={{ fontSize: 13 }}>{origin}/c/{c.code}</code>
+                      </p>
+                      {qrByCode[c.code] ? (
+                        <a
+                          href={qrByCode[c.code]}
+                          download={`reelworx-qr-${c.code}.png`}
+                          className="btn btn-ghost"
+                          style={{ height: 36, marginTop: 10 }}
+                        >
+                          Download QR
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
                 ) : null}
               </div>
             ))}
