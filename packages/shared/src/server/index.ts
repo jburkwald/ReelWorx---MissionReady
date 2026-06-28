@@ -119,6 +119,8 @@ export {
   type ProfileStrengthFields,
 } from './strength';
 export { parseResume, type ParseResumeResult } from './resume';
+export { saveVeteranRecord, type SaveRecordResult } from './record';
+export { listLivingChapters, addLivingChapter } from './living';
 export {
   getCandidateFitReads,
   getCandidateReachBalance,

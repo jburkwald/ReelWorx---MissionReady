@@ -304,6 +304,31 @@ export default function Home() {
           </Text>
         </Pressable>
 
+        {/* Living Profile — add chapters as you grow (1.6). */}
+        <Pressable
+          onPress={() => router.push('/(app)/chapters')}
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.gray050,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: radius.lg,
+              padding: spacing.lg,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>
+              Add to your living profile
+            </Text>
+            <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
+          </View>
+          <Text style={{ marginTop: 4, fontSize: 14, color: colors.textMuted }}>
+            Your story keeps growing. Add a chapter whenever something changes.
+          </Text>
+        </Pressable>
+
         {/* Serve Forward — keep serving by pulling the next one through (4.1/4.2). */}
         <Pressable
           onPress={() => router.push('/(app)/serve-forward')}

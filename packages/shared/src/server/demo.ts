@@ -409,6 +409,25 @@ export function demoCandidateDashboard(): CandidateDashboard {
   };
 }
 
+// ── Living Profile chapters (1.6) ────────────────────────────────────────────
+
+export function demoLivingChapters(): import('../profile/living').LivingChapter[] {
+  return [
+    {
+      id: 'demo-chapter-1',
+      title: 'Started at Ridgeline',
+      body: 'Six weeks in as a shift lead. The team is sharp, and the calm-under-pressure thing translates straight over.',
+      at: '2026-05-02T15:00:00.000Z',
+    },
+    {
+      id: 'demo-chapter-2',
+      title: 'First process win',
+      body: 'Rebuilt the morning staging routine and cut the start-of-shift scramble. Felt like the old days, in the best way.',
+      at: '2026-06-10T15:00:00.000Z',
+    },
+  ];
+}
+
 // ── Candidate-side Fit Read (2.2, Dana's view) ───────────────────────────────
 
 export function demoCandidateFitReads(): import('./candidate-matches').CandidateFitRead[] {

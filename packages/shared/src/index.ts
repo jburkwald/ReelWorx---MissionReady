@@ -14,6 +14,7 @@ export * from './types/credibility';
 export * from './types/paths';
 export * from './fit/score';
 export * from './profile/strength';
+export * from './profile/living';
 export * from './story/types';
 export * from './story/phases';
 export * from './story/record';

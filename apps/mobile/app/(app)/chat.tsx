@@ -82,6 +82,8 @@ export default function StoryChat() {
     setMessages([{ role: 'assistant', content: bridge }]);
     setPhase('story');
     setRecordOpen(false);
+    // Persist the structured record (real mode); harmless no-op in the keyless demo.
+    api.post('/record', { record: rec }).catch(() => {});
     if (mode === 'talk') voice.speak(bridge);
   }
 
