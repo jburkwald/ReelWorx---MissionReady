@@ -4,7 +4,7 @@ Paste everything below into Claude Code once you've opened this project folder. 
 
 ---
 
-I'm building ReelWorx NextMission, a two-sided human-connection platform that helps veterans and civilians find meaningful careers through story and a science-backed fit read, instead of resumes and keyword search, and helps companies find them the same way.
+I'm building ReelWorx MissionReady, a two-sided human-connection platform that helps veterans and civilians find meaningful careers through story and a science-backed fit read, instead of resumes and keyword search, and helps companies find them the same way.
 
 You've already read `CLAUDE.md`. Before you write any code, also read `/docs/VISION_AND_BACKLOG.md` in full, then `/docs/DATA_MODEL.md`, `/docs/DESIGN_LANGUAGE.md`, and `/docs/BEHAVIORAL_DESIGN.md`. I want you to actually internalize the vision, not just skim for technical requirements — the backlog document explains *why* the platform is built the way it is, and that reasoning should shape decisions you make that I haven't explicitly specified.
 

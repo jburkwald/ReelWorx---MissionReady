@@ -55,6 +55,12 @@ const demoOrganization: Prisma.OrganizationGetPayload<true> = {
     'A fast-growing regional distribution company that runs on ownership, calm under pressure, and taking care of its people.',
   plantedFlagStatement:
     'We hire those who served because the work rewards exactly what the service builds: leadership under pressure, accountability, and looking after the people next to you.',
+  cultureProfile: {
+    feelsLike:
+      'Fast, hands-on, and tight-knit. People own their floor and back each other up when a shift gets hard.',
+    thrivesHere: 'Owners and steady hands — people who run toward the problem and bring the team with them.',
+    values: ['Ownership', 'Service', 'Team welfare', 'Excellence'],
+  } as unknown as Prisma.JsonValue,
   createdAt: now,
   updatedAt: now,
 };

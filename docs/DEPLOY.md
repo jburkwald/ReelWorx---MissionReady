@@ -1,4 +1,4 @@
-# Deploying ReelWorx NextMission
+# Deploying ReelWorx MissionReady
 
 The **web (company) app** deploys to Vercel and is testable immediately. The **mobile
 (candidate) app** needs an EAS dev-client build (it uses native modules — `expo-image-picker`,

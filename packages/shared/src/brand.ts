@@ -7,7 +7,7 @@
 // once — no code refactor follows.
 
 export const BRAND = {
-  product: 'ReelWorx NextMission',
+  product: 'ReelWorx MissionReady',
   // User-facing name of the five-dimension assessment / model. Working name.
   assessment: 'Full Spectrum',
   assessmentShort: 'Full Spectrum',

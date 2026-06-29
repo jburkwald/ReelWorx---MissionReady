@@ -89,7 +89,7 @@ export default async function ResumePage({
         ) : null}
 
         <p style={{ marginTop: 32, fontSize: 11, color: '#aaa' }}>
-          Generated from a ReelWorx NextMission profile.
+          Generated from a ReelWorx MissionReady profile.
         </p>
       </div>
     </main>

@@ -1,4 +1,4 @@
-// ReelWorx NextMission — Prisma schema
+// ReelWorx MissionReady — Prisma schema
 //
 // Proposed revision of the DATA_MODEL.md draft. The core discipline is preserved:
 // Reel/Cast/type enums stay generic so new verticals (Epic 7) are config, not rebuilds.
@@ -99,6 +99,15 @@ enum NotificationChannel {
   email
 }
 
+// A Root row is either the candidate's single Hometown (where they are FROM — powers the
+// "Come Home" search) or one of their Open To places (where they would CONSIDER relocating).
+// Both are indexed and company-searchable, but they are semantically distinct, so the
+// discriminator lives on the indexed row and a company can filter for either or both.
+enum RootKind {
+  hometown // the single emotional home (Feature 3.3, "Come Home")
+  open_to  // a place they would relocate to (discoverability)
+}
+
 // ---------------------------------------------------------------------------
 // Core identity
 // ---------------------------------------------------------------------------
@@ -139,8 +148,11 @@ model Profile {
   decodedCredibility    Json?             @map("decoded_credibility") // structured employer read (Feature 2.7): business summary + proof signals + values fit. Per-candidate + cached (role-independent). mosTranslation mirrors its summary string.
   fitProfile            Json?             @map("fit_profile") // five-dimension shape; mirrors Role.idealProfile. Brand display name ("Full Spectrum", pending TM) lives in packages/shared, not here.
   completenessScore     Int               @default(0) @map("completeness_score") // profile-strength meter (goal-gradient)
+  strengthComponents    Json?             @map("strength_components") // which profile-strength components are complete (mirrors profile/strength.ts registry)
   openToRelocate        Boolean           @default(false) @map("open_to_relocate")
-  whyEachMove           Json?             @map("why_each_move") // narrative entries tied to work history (the "why")
+  hometown              String?           @map("hometown") // single place they're from — the "Come Home" target. Mirrored to User.hometown (the search-indexed copy) on write; the Root table holds additional ties.
+  openTo                Json?             @map("open_to") // ARRAY of structured location objects they'd relocate to (multi-select, autocomplete) — distinct from hometown and from openToRelocate
+  whyEachMove           Json?             @map("why_each_move") // narrative entries tied to work history (the "why"); depth-scored by Claude
   livingProfileChapters Json?             @map("living_profile_chapters") // append-only, timestamped (Feature 1.6)
   createdAt             DateTime          @default(now()) @map("created_at")
   updatedAt             DateTime          @updatedAt @map("updated_at")
@@ -154,15 +166,17 @@ model Profile {
 // Normalized roots so hometown search is an indexed query, not a JSON scan.
 // One primary hometown, plus any number of additional ties (Feature 3.3).
 model Root {
-  id        String  @id @default(cuid())
-  profileId String  @map("profile_id")
+  id        String   @id @default(cuid())
+  profileId String   @map("profile_id")
   place     String // normalize on write (e.g. "Columbus, OH")
-  isPrimary Boolean @default(false) @map("is_primary")
+  kind      RootKind @default(hometown) // hometown vs open_to — default keeps existing rows as hometown ties
+  isPrimary Boolean  @default(false) @map("is_primary")
   reason    String?
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([place])
+  @@index([place, kind]) // "find people whose hometown OR open-to is X" — filter by kind
   @@index([profileId])
   @@map("roots")
 }
@@ -180,6 +194,7 @@ model Organization {
   verified             Boolean  @default(false)
   description          String?
   plantedFlagStatement String?  @map("planted_flag_statement") // first-class trust signal (relatedness)
+  cultureProfile       Json?    @map("culture_profile") // company_culture_profile: what it actually feels like to work here; used by matching alongside each Role.idealProfile
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 

@@ -20,7 +20,7 @@ export default function CandidateHome() {
     >
       <div className="fade-in-up" style={{ animationDelay: '0ms' }}>
         <span className="display" style={{ fontSize: 17, letterSpacing: 1 }}>
-          REELWORX NEXTMISSION
+          REELWORX MISSIONREADY
         </span>
         <div className="spectrum-bar" style={{ width: 52, height: 4, marginTop: 8 }} />
       </div>

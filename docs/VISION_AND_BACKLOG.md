@@ -1,4 +1,4 @@
-# ReelWorx NextMission
+# ReelWorx MissionReady
 ### The Quantum Leap Vision, Product Backlog, and Growth Roadmap
 
 ---
@@ -9,15 +9,15 @@ In ten years, the resume is a relic.
 
 Not because technology killed it. Because a generation of people who were asked to flatten themselves into keywords finally had somewhere better to go, and they never looked back.
 
-ReelWorx NextMission becomes the standard for how human beings and organizations find each other when the stakes are high. Not a job board. Not an ATS. Not a LinkedIn. Something that did not exist before, a platform where story, science, and signal converge so that the right person and the right place recognize each other before a single interview is scheduled.
+ReelWorx MissionReady becomes the standard for how human beings and organizations find each other when the stakes are high. Not a job board. Not an ATS. Not a LinkedIn. Something that did not exist before, a platform where story, science, and signal converge so that the right person and the right place recognize each other before a single interview is scheduled.
 
 It starts with the most underserved, highest-integrity talent pool in America: the men and women leaving military service. Two hundred thousand of them transition every year, carrying leadership, discipline, and proven performance that civilian employers cannot read and cannot find. That problem, multiplied by a system that was never built to solve it, is the beachhead.
 
-But the primitives that solve it for a veteran solve it for anyone. A student deciding where to go to college. A franchise investor choosing the right brand. A career-changer who has outgrown their industry. A company trying to bring regional talent home. Anywhere a human being and an organization need to find each other at a level deeper than a keyword search, NextMission is the engine.
+But the primitives that solve it for a veteran solve it for anyone. A student deciding where to go to college. A franchise investor choosing the right brand. A career-changer who has outgrown their industry. A company trying to bring regional talent home. Anywhere a human being and an organization need to find each other at a level deeper than a keyword search, MissionReady is the engine.
 
 **The category we are creating is not a better hiring tool. It is the human-connection infrastructure for consequential decisions.**
 
-At scale, NextMission is a two-sided network with compounding data that makes every match sharper than the last, a content creation layer that every company and every person can use without a partner, a distribution engine that puts the right story in front of the right person at the exact right moment, and a credentialing and marketplace layer that turns gaps into revenue and closed gaps into better matches.
+At scale, MissionReady is a two-sided network with compounding data that makes every match sharper than the last, a content creation layer that every company and every person can use without a partner, a distribution engine that puts the right story in front of the right person at the exact right moment, and a credentialing and marketplace layer that turns gaps into revenue and closed gaps into better matches.
 
 The flywheel, when it spins at scale: more stories create more signal, more signal creates better matches, better matches create more outcomes, more outcomes create more stories. Every turn of the wheel makes the next turn faster. The data moat deepens with every connection made.
 
@@ -33,7 +33,7 @@ A resume turns a person into keywords. A job post turns a company into bullet po
 
 The people who feel it most are the ones leaving the service. They spend years inside something built on mission, identity, and the bond of a unit, then they hand a recruiter a sheet of paper that captures none of it. Fewer than one in five transitioning service members feel ready to find civilian work, and the wound is rarely a lack of skill. It is that no one can see what they actually carry.
 
-**ReelWorx NextMission gives the human back.**
+**ReelWorx MissionReady gives the human back.**
 
 It brings career opportunities to life through video and podcast, and it translates a service record into civilian meaning so the person is finally seen. It does not just match someone to a job. For a service member who does not yet know who they become next, it helps them discover paths they never pictured, the diesel mechanic who loves people and wants to protect them, finding their way to a career in sales they never considered.
 
@@ -56,7 +56,7 @@ New to transition or early in it. Does not fully know who he becomes next. Wants
 Out a few years, underemployed, restless. Knows she has more to give. Wants a place that recognizes her and a company that actually wants her.
 
 **The Placed Veteran (the proof)**
-Already hired through NextMission and thriving. Comes back not for a reward but to help fellow service members through. Their growing story is the most powerful recruiting asset on the platform.
+Already hired through MissionReady and thriving. Comes back not for a reward but to help fellow service members through. Their growing story is the most powerful recruiting asset on the platform.
 
 **Karen — The Planted-Flag Employer**
 Has publicly committed to hiring veterans. Wants fewer, better, higher-intent people, around ten to fifteen a week, decoded in plain language so she can decide to reach out or pass. Needs proof it is working.
@@ -129,7 +129,7 @@ Three ways in: talk to an audio agent, upload a resume, or text chat. The agent 
 The rich human version: intro video, photo, story, shareable by one link. The clean ATS version: single-column, no photo, parseable when uploaded as an attachment. Same data, two renderings. This is what makes the counselor's pitch simple: the profile you build here is your new resume.
 - As Marcus, I want a shareable link that tells my whole story, so that I can send it anywhere.
 - As Marcus, I want a clean version that passes the filters, so that I can apply off-platform without being screened out.
-- As a Veteran Champion, I want to tell members their NextMission profile is their new resume, so that I have a concrete reason to send them here.
+- As a Veteran Champion, I want to tell members their MissionReady profile is their new resume, so that I have a concrete reason to send them here.
 
 **Feature 1.4 — The Intro Video, without the fear [MVP]**
 A short, forward-looking video guided by a prompt and a quick example. Who I am and what I am excited to pursue next.
@@ -189,7 +189,7 @@ At scale, the Science Layer predicts where a person will be in two to five years
 ### Epic 3 — Connection That Stays Manageable
 *Reaching out means something. Recruiting goes both directions. A company can call someone home.*
 
-**The ceiling:** the signal layer is the moat. At scale, NextMission is the only platform where every connection is a real one, because scarcity is baked into the architecture. That trust is what the largest employers in the world pay to access.
+**The ceiling:** the signal layer is the moat. At scale, MissionReady is the only platform where every connection is a real one, because scarcity is baked into the architecture. That trust is what the largest employers in the world pay to access.
 
 **Feature 3.1 — Intentful Reach [MVP]**
 Exploration is free and open. Intent only costs something once a person commits to reaching out. Scarcity is the signal.
@@ -288,7 +288,7 @@ The dashboard tells you not just what happened but who is about to become availa
 ### Epic 7 — One Engine, Many Missions
 *Veteran-focused now. The same six layers carry every mission that follows.*
 
-**The ceiling:** NextMission is the human-connection infrastructure for any consequential decision. Veterans are the proof of concept and the origin story. Everything else is the engine at scale.
+**The ceiling:** MissionReady is the human-connection infrastructure for any consequential decision. Veterans are the proof of concept and the origin story. Everything else is the engine at scale.
 
 **Feature 7.1 — Civilian Spoke, Kept Alive [MVP, low priority]**
 The civilian door stays open and inherits what fits without pulling design energy from the veteran.
@@ -303,14 +303,14 @@ The same Reel, Match, and Advocate mechanics. A program's story, a student's pro
 The opportunity story, the investor profile, the fit read on capital, appetite, and vision alignment. Same engine, different skin.
 
 **Feature 7.5 — The Platform Standard [Horizon]**
-NextMission licenses the Full Spectrum engine and the story infrastructure to organizations building their own human-connection products. The platform becomes the rails that others build on. The Amazon Web Services move.
+MissionReady licenses the Full Spectrum engine and the story infrastructure to organizations building their own human-connection products. The platform becomes the rails that others build on. The Amazon Web Services move.
 
 ---
 
 ### Epic 8 — Reach the Veteran Community
 *Get the planted-flag stories in front of the people who served, through channels we own and channels we earn.*
 
-**The ceiling:** NextMission is so embedded in the transition ecosystem, through the counselors, the alumni, the partner organizations, and the owned digest, that a service member encounters it three times before they even consciously start their search.
+**The ceiling:** MissionReady is so embedded in the transition ecosystem, through the counselors, the alumni, the partner organizations, and the owned digest, that a service member encounters it three times before they even consciously start their search.
 
 **Feature 8.1 — The Champion On-Ramp [MVP]**
 Counselors at TAP, VA, and USO bring members in through a QR and invite link. A simple referred-member view. Every separating member passes through these people.
@@ -325,7 +325,7 @@ Opt-in by text and email at the transition point. A weekly digest of opportuniti
 Placed veterans sharing their story publicly, paired with partner amplification through Hire Heroes USA, Hiring Our Heroes, USO, and Semper Forward. A give-back like ten percent to Hire Heroes is the natural shape of the partnership. Built as upside, never load-bearing.
 
 **Feature 8.4 — The Embedded Network [Horizon]**
-NextMission is the content layer inside the platforms and services veterans already use. Their story is built here. Their opportunities are here. Their community comes here. Not because we pushed them. Because it was the best place to be.
+MissionReady is the content layer inside the platforms and services veterans already use. Their story is built here. Their opportunities are here. Their community comes here. Not because we pushed them. Because it was the best place to be.
 
 ---
 

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 // that shares the same backend (packages/shared) as the native app. Public: no Clerk,
 // no sign-in needed to explore. Centered "app column" so it feels like a phone.
 export const metadata: Metadata = {
-  title: 'ReelWorx NextMission — your next mission',
+  title: 'ReelWorx MissionReady — your next mission',
   description:
     'Made for the ones who served. Build a profile that shows who you became, discover paths you never pictured, and get seen — no resume.',
 };

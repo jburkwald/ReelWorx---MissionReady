@@ -3,7 +3,7 @@
 // The same profile renders two ways: the rich human version (story, intro video, decoded
 // credibility — shareable by one link, sendable anywhere) and the clean single-column ATS
 // version (no media, parseable when uploaded off-platform). Same data, two renderings — so
-// a counselor can tell a member "your NextMission profile IS your new résumé."
+// a counselor can tell a member "your MissionReady profile IS your new résumé."
 //
 // Visibility-aware: a `private` profile never renders publicly. `public` and
 // `companies_only` both render via a direct link — sharing the link is the candidate's own

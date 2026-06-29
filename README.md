@@ -1,4 +1,4 @@
-# ReelWorx NextMission
+# ReelWorx MissionReady
 
 A human-connection platform for veterans, civilians, and the companies who want to hire them — story and science instead of resumes and keywords.
 

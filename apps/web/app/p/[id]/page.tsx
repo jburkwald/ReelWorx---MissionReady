@@ -54,7 +54,7 @@ export default async function PublicProfilePage({
       <div className="container" style={{ maxWidth: 760, paddingTop: 48, paddingBottom: 72, display: 'grid', gap: 36 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" className="display" style={{ fontSize: 18, color: 'var(--white)' }}>
-            ReelWorx NextMission
+            ReelWorx MissionReady
           </Link>
           <Link
             href={`/p/${id}/resume`}
@@ -119,7 +119,7 @@ export default async function PublicProfilePage({
 
         <div className="spectrum-bar" style={{ maxWidth: 120 }} />
         <p className="muted" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-          Built on ReelWorx NextMission — story, science, and signal.
+          Built on ReelWorx MissionReady — story, science, and signal.
         </p>
       </div>
     </main>

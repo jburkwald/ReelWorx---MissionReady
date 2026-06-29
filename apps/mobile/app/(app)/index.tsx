@@ -350,7 +350,7 @@ export default function Home() {
             <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
           </View>
           <Text style={{ marginTop: 4, fontSize: 14, color: colors.textMuted }}>
-            Help the next person through — share NextMission in one tap.
+            Help the next person through — share MissionReady in one tap.
           </Text>
         </Pressable>
       </ScrollView>

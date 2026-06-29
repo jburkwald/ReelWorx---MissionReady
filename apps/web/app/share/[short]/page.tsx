@@ -22,7 +22,7 @@ export default async function SharedLanding({
           Someone who served thinks you should see this.
         </h1>
         <p style={{ fontSize: 18, lineHeight: 1.6, maxWidth: 560, color: 'rgba(255,255,255,0.85)' }}>
-          ReelWorx NextMission helps people leaving the service get seen for who they
+          ReelWorx MissionReady helps people leaving the service get seen for who they
           actually became — through story and a real read on the whole person, not a résumé.
           A fellow service member shared it with you.
         </p>

@@ -25,7 +25,7 @@ export default async function JoinPage({
     <main style={{ minHeight: '100dvh', background: 'var(--black)', color: 'var(--white)' }}>
       <div className="container" style={{ paddingTop: 56, paddingBottom: 64, maxWidth: 720, display: 'grid', gap: 28 }}>
         <Link href="/" className="display" style={{ fontSize: 22, color: 'var(--white)' }}>
-          ReelWorx NextMission
+          ReelWorx MissionReady
         </Link>
         <div className="spectrum-bar" style={{ maxWidth: 80 }} />
 

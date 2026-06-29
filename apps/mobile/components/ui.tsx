@@ -43,7 +43,7 @@ export function Wordmark({ size = 22 }: { size?: number }) {
   return (
     <View style={{ gap: 8 }}>
       <Text style={[styles.wordmark, { fontSize: size }]}>
-        REELWORX NEXTMISSION
+        REELWORX MISSIONREADY
       </Text>
       <LinearGradient
         colors={spectrumColors}

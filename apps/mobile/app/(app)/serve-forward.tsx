@@ -50,7 +50,7 @@ export default function ServeForward() {
       const { shareUrl } = await api.post<{ shareUrl: string }>('/share', {});
       await Share.share({
         message:
-          'I’m on ReelWorx NextMission — it helps people leaving the service get seen for who ' +
+          'I’m on ReelWorx MissionReady — it helps people leaving the service get seen for who ' +
           `they actually became, not a résumé. Take a look: ${shareUrl}`,
       });
       await loadImpact();
@@ -84,7 +84,7 @@ export default function ServeForward() {
         )}
 
         <View style={{ gap: spacing.sm }}>
-          <PrimaryButton label="Share NextMission" onPress={shareForward} loading={sharing} />
+          <PrimaryButton label="Share MissionReady" onPress={shareForward} loading={sharing} />
           <Text style={{ textAlign: 'center', fontSize: 13, color: colors.textMuted }}>
             No commission. Just a hand back for the next one through.
           </Text>

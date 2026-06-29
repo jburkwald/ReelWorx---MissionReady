@@ -1,4 +1,4 @@
-# ReelWorx NextMission — Project Memory for Claude Code
+# ReelWorx MissionReady — Project Memory for Claude Code
 
 This file is read automatically at the start of every Claude Code session in this repo. Keep it current. If a decision changes, update this file in the same session.
 

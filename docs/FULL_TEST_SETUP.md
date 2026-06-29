@@ -1,4 +1,4 @@
-# ReelWorx NextMission — Full Test Setup & Persona Script
+# ReelWorx MissionReady — Full Test Setup & Persona Script
 
 How to take the app from the keyless demo to a real, end-to-end test of every persona.
 The features are built; this is configuration + first real run.
