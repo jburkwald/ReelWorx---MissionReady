@@ -25,7 +25,9 @@ const normalizePlace = (s: string) => s.trim().replace(/\s+/g, ' ');
 
 export async function listRoots(prisma: PrismaClient, userId: string): Promise<RootView[]> {
   const rows = await prisma.root.findMany({
-    where: { profile: { userId } },
+    // Roots are the "Come Home" hometown ties only; Open To places (kind: open_to) are a
+    // separate field managed by places.ts and must not leak into this list.
+    where: { profile: { userId }, kind: 'hometown' },
     orderBy: [{ isPrimary: 'desc' }, { place: 'asc' }],
   });
   return rows.map((r) => ({ id: r.id, place: r.place, isPrimary: r.isPrimary, reason: r.reason }));
@@ -62,24 +64,26 @@ export async function setRoots(
     r.isPrimary = i === primaryIdx;
   });
 
+  const primaryPlace = primaryIdx >= 0 ? cleaned[primaryIdx].place : null;
   await prisma.$transaction([
-    prisma.root.deleteMany({ where: { profileId: profile.id } }),
+    // Only replace the hometown-kind rows; Open To rows (kind: open_to) are untouched.
+    prisma.root.deleteMany({ where: { profileId: profile.id, kind: 'hometown' } }),
     ...(cleaned.length
       ? [
           prisma.root.createMany({
             data: cleaned.map((r) => ({
               profileId: profile.id,
               place: r.place,
+              kind: 'hometown' as const,
               isPrimary: r.isPrimary,
               reason: r.reason,
             })),
           }),
         ]
       : []),
-    prisma.user.update({
-      where: { id: input.userId },
-      data: { hometown: primaryIdx >= 0 ? cleaned[primaryIdx].place : null },
-    }),
+    // Mirror the primary hometown onto both User (search-indexed) and Profile (display copy).
+    prisma.user.update({ where: { id: input.userId }, data: { hometown: primaryPlace } }),
+    prisma.profile.update({ where: { id: profile.id }, data: { hometown: primaryPlace } }),
   ]);
 
   return listRoots(prisma, input.userId);

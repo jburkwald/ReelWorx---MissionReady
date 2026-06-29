@@ -81,15 +81,31 @@ export async function POST(req: Request) {
       videoIntroAssetId: profile.videoIntroAssetId,
     });
 
+    // Hometown is a single value; Open To is an additive list (union with what's there).
+    const existingOpenTo = Array.isArray(profile.openTo) ? (profile.openTo as string[]) : [];
+    const mergedOpenTo = extraction?.openTo?.length
+      ? Array.from(new Set([...existingOpenTo, ...extraction.openTo]))
+      : undefined;
+
     await prisma.profile.update({
       where: { id: profile.id },
       data: {
         ...(extraction?.headline ? { headline: extraction.headline } : {}),
+        ...(extraction?.hometown ? { hometown: extraction.hometown } : {}),
+        ...(mergedOpenTo ? { openTo: mergedOpenTo as Prisma.InputJsonValue } : {}),
         fitProfile: merged.fitProfile as Prisma.InputJsonValue,
         whyEachMove: merged.whyEachMove as unknown as Prisma.InputJsonValue,
         completenessScore: completeness,
       },
     });
+
+    // Mirror Hometown to the search-indexed User.hometown so "Come Home" sourcing finds them.
+    if (extraction?.hometown) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { hometown: extraction.hometown },
+      });
+    }
 
     await logEvent(prisma, {
       actorId: user.id,

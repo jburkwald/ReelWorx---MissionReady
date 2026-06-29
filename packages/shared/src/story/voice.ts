@@ -68,7 +68,7 @@ export const VOICE_AGENT: VoiceAgentConfig = {
   spokenStyleAddendum:
     'You are speaking OUT LOUD and the person is answering by voice. Keep every reply to one or two short spoken sentences a person can follow by ear. Ask exactly one question per turn. Never use lists, markdown, headings, or emojis. Use natural contractions. In a few words, acknowledge what they just said before you ask the next thing.',
   spokenOpener:
-    "I'd love to hear your story. Not a resume, just you. We'll take it one piece at a time, and you can stop whenever you want. To start, tell me where you served, or what you're hoping to do next.",
+    "Hey, I'm really glad you're here. Before we dive in, let me tell you how this works, because it isn't a form. We're just going to talk. I'll ask about your story, you tell it however it comes out, and I'll take care of turning it into a profile in the background. The first part takes about fifteen or twenty minutes, and your profile keeps getting richer over time. I'll check in as we go so you never feel worn out, and you can stop whenever you want. Everything saves, and I'll bring you right back to where you left off. What you build becomes two things: a story you can share like a resume, and a clean version that gets through any application system. Sound good? Then let's start easy. Tell me where you served, or what you're hoping to do next.",
   delivery: {
     lang: 'en-US',
     rate: 1.0,

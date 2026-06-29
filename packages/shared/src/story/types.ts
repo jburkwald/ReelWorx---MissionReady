@@ -22,6 +22,10 @@ export interface ProfileExtraction {
   coreValues?: string[];
   whatDrivesThem?: string;
   whyEachMove?: { role: string; why: string }[];
+  /** Single place they're from — the "Come Home" target (distinct from openTo). */
+  hometown?: string;
+  /** Places they'd consider relocating to (zero, one, or many). */
+  openTo?: string[];
 }
 
 export interface StoryTurnResult {

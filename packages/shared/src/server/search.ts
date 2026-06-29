@@ -19,15 +19,27 @@ export interface PeopleSearchResult {
   completenessScore: number;
 }
 
+/**
+ * Where a place filter looks. 'hometown' = people FROM here (Come Home), 'open_to' = people
+ * who would relocate HERE, 'either' (default) = both. Karen sourcing a Milwaukee role can ask
+ * for roots, relocation-willing, or anyone connected to Milwaukee at all.
+ */
+export type PlaceScope = 'hometown' | 'open_to' | 'either';
+
 export interface SearchCandidatesInput {
   query?: string | null;
   place?: string | null;
+  placeScope?: PlaceScope;
   limit?: number;
 }
 
 // Shared where-builder so search and the "new since" count never drift apart. Always
 // scoped to candidates discoverable to companies (never `private`).
-function candidateWhere(query?: string | null, place?: string | null): Prisma.ProfileWhereInput {
+function candidateWhere(
+  query?: string | null,
+  place?: string | null,
+  placeScope: PlaceScope = 'either',
+): Prisma.ProfileWhereInput {
   const q = query?.trim();
   const p = place?.trim();
   const and: Prisma.ProfileWhereInput[] = [];
@@ -40,13 +52,23 @@ function candidateWhere(query?: string | null, place?: string | null): Prisma.Pr
     });
   }
   if (p) {
-    and.push({
-      OR: [
-        { roots: { some: { place: { contains: p, mode: 'insensitive' } } } },
-        { user: { hometown: { contains: p, mode: 'insensitive' } } },
-        { user: { currentLocation: { contains: p, mode: 'insensitive' } } },
-      ],
-    });
+    const contains = { contains: p, mode: 'insensitive' as const };
+    const hometownMatch: Prisma.ProfileWhereInput[] = [
+      { roots: { some: { kind: 'hometown', place: contains } } },
+      { hometown: contains },
+      { user: { hometown: contains } },
+      { user: { currentLocation: contains } },
+    ];
+    const openToMatch: Prisma.ProfileWhereInput[] = [
+      { roots: { some: { kind: 'open_to', place: contains } } },
+    ];
+    const or =
+      placeScope === 'hometown'
+        ? hometownMatch
+        : placeScope === 'open_to'
+          ? openToMatch
+          : [...hometownMatch, ...openToMatch];
+    and.push({ OR: or });
   }
   return {
     visibility: { in: ['public', 'companies_only'] },

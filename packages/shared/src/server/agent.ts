@@ -61,6 +61,15 @@ const saveProgressTool: Anthropic.Tool = {
           additionalProperties: false,
         },
       },
+      hometown: {
+        type: 'string',
+        description: 'The single place they are from (their hometown / where their roots are), e.g. "Columbus, OH".',
+      },
+      openTo: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Places they would consider relocating to (cities, regions, or phrases like "anywhere in the Southeast").',
+      },
     },
     additionalProperties: false,
   },
