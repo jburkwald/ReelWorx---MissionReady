@@ -2,13 +2,14 @@
   "name": "reelworx-nextmission",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "npm@11.11.1",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build",
+    "build": "turbo run build --filter=@reelworx/web",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
