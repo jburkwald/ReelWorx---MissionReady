@@ -96,7 +96,14 @@ export {
   countNewCandidates,
   type PeopleSearchResult,
   type SearchCandidatesInput,
+  type PlaceScope,
 } from './search';
+export {
+  getPlaces,
+  setPlaces,
+  type PlacesView,
+  type SetPlacesInput,
+} from './places';
 export {
   createAlert,
   deleteAlert,

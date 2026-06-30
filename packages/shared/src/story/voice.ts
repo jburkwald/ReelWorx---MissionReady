@@ -30,11 +30,15 @@ export interface VoiceDelivery {
 // All non-secret, so they live here for one-place tuning. When no key is present the app
 // falls back to the browser's built-in voice (VoiceDelivery above).
 export interface ElevenLabsSettings {
-  /** Voice id from the ElevenLabs library. Default is a steady, warm narrator. */
+  /** Voice id from the ElevenLabs library. Default is a warm, conversational narrator. */
   voiceId: string;
-  /** Model id. Turbo v2.5 is low-latency and supports speed/style. */
+  /**
+   * Model id. `eleven_multilingual_v2` is ElevenLabs' most natural/expressive model — the
+   * warmest, most human result, at slightly higher latency than the `turbo`/`flash` models.
+   * For a calmer one-or-two-sentence reply the extra latency is unnoticeable; naturalness wins.
+   */
   modelId: string;
-  /** 0–1. Lower = more expressive/variable, higher = more consistent. */
+  /** 0–1. Lower = more expressive/variable, higher = more consistent/flat. */
   stability: number;
   /** 0–1. How closely to match the source voice timbre. */
   similarityBoost: number;
@@ -86,13 +90,19 @@ export const VOICE_AGENT: VoiceAgentConfig = {
     ],
   },
   elevenlabs: {
-    // "Adam" — a steady, warm public voice that fits the recruiter-with-your-back persona.
-    // Swap voiceId for any voice in your ElevenLabs library.
-    voiceId: 'pNInz6obpgDQGcFmaJgB',
-    modelId: 'eleven_turbo_v2_5',
-    stability: 0.45,
-    similarityBoost: 0.75,
-    style: 0.3,
-    speed: 1.0,
+    // "Brian" — a warm, deep, conversational American voice from the default ElevenLabs
+    // library; reads far more human than the old stock "Adam". This must be a voice that
+    // exists on YOUR account (the defaults do). To change it: ElevenLabs → Voices → copy the
+    // voice ID and paste it here. Earlier "Adam" was pNInz6obpgDQGcFmaJgB.
+    voiceId: 'nPczCjzI2devNBz1zQrb',
+    // Flagship quality over low-latency turbo — the single biggest "sounds human" lever.
+    modelId: 'eleven_multilingual_v2',
+    // Tuned for a calm recruiter who has your back: expressive but not theatrical, an easy
+    // unhurried cadence. Lower stability = more lifelike variation; a little style + speaker
+    // boost adds warmth; 0.96 speed takes the rushed, robotic edge off.
+    stability: 0.4,
+    similarityBoost: 0.8,
+    style: 0.35,
+    speed: 0.96,
   },
 };

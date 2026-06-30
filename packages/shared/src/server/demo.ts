@@ -483,6 +483,7 @@ const DEMO_PEOPLE: PeopleSearchResult[] = [
       { place: 'Columbus, OH', isPrimary: true },
       { place: 'Lancaster, OH', isPrimary: false },
     ],
+    openTo: ['Columbus, OH', 'Nashville, TN', 'Anywhere in the Midwest'],
     decodedSummary:
       'Led 45 people and millions in equipment; ran daily logistics under pressure. Built to run a distribution floor.',
     completenessScore: 92,
@@ -493,6 +494,7 @@ const DEMO_PEOPLE: PeopleSearchResult[] = [
     headline: 'Squad leader, early in his civilian transition',
     currentLocation: 'Columbus, OH',
     roots: [{ place: 'Columbus, OH', isPrimary: true }],
+    openTo: ['Columbus, OH'],
     decodedSummary: 'High-drive emerging leader, local to Columbus and looking to stay and build.',
     completenessScore: 67,
   },
@@ -502,6 +504,7 @@ const DEMO_PEOPLE: PeopleSearchResult[] = [
     headline: 'Maintenance chief turned operations generalist',
     currentLocation: 'Cincinnati, OH',
     roots: [{ place: 'Dayton, OH', isPrimary: true }],
+    openTo: ['Cincinnati, OH', 'Anywhere in the Southeast'],
     decodedSummary: 'Process-strong operations builder with a maintenance backbone; cut downtime 30%.',
     completenessScore: 84,
   },
@@ -519,7 +522,8 @@ export function demoPeople(input: { query?: string | null; place?: string | null
     const matchesP =
       !p ||
       (person.currentLocation ?? '').toLowerCase().includes(p) ||
-      person.roots.some((r) => r.place.toLowerCase().includes(p));
+      person.roots.some((r) => r.place.toLowerCase().includes(p)) ||
+      person.openTo.some((o) => o.toLowerCase().includes(p));
     return matchesQ && matchesP;
   });
 }

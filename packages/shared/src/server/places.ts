@@ -34,12 +34,16 @@ export interface SetPlacesInput {
 
 function parseOpenTo(value: Prisma.JsonValue | null | undefined): LocationRef[] {
   if (!Array.isArray(value)) return [];
-  return normalizeOpenTo(
-    value.filter((v): v is Record<string, unknown> => !!v && typeof v === 'object').map((v) => ({
-      label: String((v as { label?: unknown }).label ?? ''),
-      kind: ((v as { kind?: unknown }).kind as LocationRef['kind']) ?? 'metro',
-    })),
-  );
+  const refs: LocationRef[] = [];
+  for (const v of value) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const obj = v as Record<string, unknown>;
+      refs.push({ label: String(obj.label ?? ''), kind: (obj.kind as LocationRef['kind']) ?? 'metro' });
+    } else if (typeof v === 'string') {
+      refs.push({ label: v, kind: 'metro' });
+    }
+  }
+  return normalizeOpenTo(refs);
 }
 
 export async function getPlaces(prisma: PrismaClient, userId: string): Promise<PlacesView> {

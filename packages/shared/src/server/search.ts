@@ -15,6 +15,8 @@ export interface PeopleSearchResult {
   headline: string | null;
   currentLocation: string | null;
   roots: { place: string; isPrimary: boolean }[];
+  /** Places the candidate is open to relocating to (Open To), for the "would move here" badge. */
+  openTo: string[];
   decodedSummary: string | null;
   completenessScore: number;
 }
@@ -83,7 +85,7 @@ export async function searchCandidates(
   if (!isDbConfigured()) return demoPeople({ query: input.query, place: input.place });
 
   const profiles = await prisma.profile.findMany({
-    where: candidateWhere(input.query, input.place),
+    where: candidateWhere(input.query, input.place, input.placeScope),
     include: { user: true, roots: true },
     orderBy: { completenessScore: 'desc' },
     take: input.limit ?? 25,
@@ -95,9 +97,10 @@ export async function searchCandidates(
     headline: p.headline,
     currentLocation: p.user.currentLocation,
     roots: p.roots
-      .slice()
+      .filter((r) => r.kind === 'hometown')
       .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary))
       .map((r) => ({ place: r.place, isPrimary: r.isPrimary })),
+    openTo: p.roots.filter((r) => r.kind === 'open_to').map((r) => r.place),
     decodedSummary: p.mosTranslation,
     completenessScore: p.completenessScore,
   }));
@@ -107,9 +110,12 @@ export async function searchCandidates(
  *  the "N new since you last looked" behind a saved alert (Feature 3.4). */
 export function countNewCandidates(
   prisma: PrismaClient,
-  input: { query?: string | null; place?: string | null; since: Date },
+  input: { query?: string | null; place?: string | null; placeScope?: PlaceScope; since: Date },
 ): Promise<number> {
   return prisma.profile.count({
-    where: { ...candidateWhere(input.query, input.place), createdAt: { gte: input.since } },
+    where: {
+      ...candidateWhere(input.query, input.place, input.placeScope),
+      createdAt: { gte: input.since },
+    },
   });
 }

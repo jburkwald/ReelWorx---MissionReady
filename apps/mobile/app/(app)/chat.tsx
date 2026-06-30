@@ -31,6 +31,7 @@ import {
   View,
 } from 'react-native';
 import { GhostButton } from '../../components/ui';
+import { LocationPicker } from '../../components/LocationPicker';
 import { colors, radius, spacing, spectrumColors } from '../../constants/theme';
 import { useApi } from '../../lib/api';
 import { useVoiceAgent } from '../../lib/useVoiceAgent';
@@ -425,15 +426,19 @@ function RecordForm({ onDone }: { onDone: (r: VeteranRecord) => void }) {
       <ChipRow label="Clearance (optional)" options={CLEARANCE_LEVELS} value={rec.clearance} onPick={(clearance) => set({ clearance })} />
       <View>
         <Text style={{ fontSize: 12.5, fontWeight: '800', letterSpacing: 0.3, color: colors.textMuted, textTransform: 'uppercase', marginBottom: 8 }}>
-          Hometown roots (optional)
+          Hometown (optional)
         </Text>
-        <TextInput
-          value={rec.hometown ?? ''}
-          onChangeText={(t) => set({ hometown: t })}
-          placeholder="e.g. Columbus, OH"
-          placeholderTextColor={colors.gray400}
-          style={{ height: 46, borderRadius: radius.md, backgroundColor: colors.fieldBg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, fontSize: 15, color: colors.text }}
-        />
+        {rec.hometown ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <Text style={{ fontSize: 20, color: colors.accent }}>★</Text>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.text }}>{rec.hometown}</Text>
+            <Pressable onPress={() => set({ hometown: undefined })} hitSlop={8}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent }}>Change</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <LocationPicker placeholder="e.g. Columbus, OH" onPick={(ref) => set({ hometown: ref.label })} />
+        )}
       </View>
       <Pressable onPress={() => onDone(rec)} disabled={!ready}>
         <LinearGradient

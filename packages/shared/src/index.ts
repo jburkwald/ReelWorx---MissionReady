@@ -19,6 +19,7 @@ export * from './story/types';
 export * from './story/phases';
 export * from './story/record';
 export * from './story/voice';
+export * from './location';
 export * from './jobs/demo';
 export * from './paths/demo';
 export * from './studio/themes';

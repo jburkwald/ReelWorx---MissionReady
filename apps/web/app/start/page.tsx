@@ -100,6 +100,10 @@ export default function CandidateHome() {
             <span>Add to your living profile</span>
             <span className="muted">›</span>
           </Link>
+          <Link href="/start/places" style={{ fontSize: 15, fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+            <span>Set your hometown &amp; where you’d go</span>
+            <span className="muted">›</span>
+          </Link>
           <Link href="/jobs" style={{ fontSize: 15, fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
             <span>Browse open roles</span>
             <span className="muted">›</span>
