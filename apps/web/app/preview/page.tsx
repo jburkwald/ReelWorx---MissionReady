@@ -15,13 +15,14 @@
 // It's a self-contained client component (no server imports) so it prerenders static and
 // ships from the repo with zero keys.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   STRENGTH_REGISTRY,
   suggestLocations,
   toLocationRef,
   type LocationRef,
 } from '@reelworx/shared';
+import { useVoiceAgent } from '../../lib/useVoiceAgent';
 
 // ── Theme — real brand tokens on a dark canvas ───────────────────────────────────────────
 const T = {
@@ -485,6 +486,71 @@ function TeamPage({ ctx }: any) {
   );
 }
 
+// ── Company · Billing & Plan (admin only) ────────────────────────────────────────────────
+function BillingPage({ ctx }: any) {
+  const rows = [['Plan', 'Pro · unlimited roles, priority matching'], ['Next billing', 'March 15, 2026'], ['Amount', '$149 / mo'], ['Invite tokens', '47 remaining']];
+  const invoices = [['Feb 15, 2026', '$149.00', 'Paid'], ['Jan 15, 2026', '$149.00', 'Paid'], ['Dec 15, 2025', '$149.00', 'Paid']];
+  return (
+    <div className="rw-fu">
+      <Banner title="Billing & Plan" sub={`${ctx.companyName} · admin only`} />
+      <Card sx={{ marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: T.ink }}>Pro Plan</div>
+          <Tag c={T.blue}>Active</Tag>
+        </div>
+        {rows.map(([l, v], i) => (
+          <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: i ? `1px solid ${T.ln}` : 'none', fontSize: 13 }}>
+            <span style={{ color: T.sub }}>{l}</span>
+            <span style={{ color: l === 'Invite tokens' ? T.red : T.ink, fontWeight: 600 }} className={l === 'Invite tokens' ? 'mono' : ''}>{v}</span>
+          </div>
+        ))}
+      </Card>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <Btn v="g" full>Update payment</Btn>
+        <Btn v="p" full>Buy invite tokens</Btn>
+      </div>
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 8 }}>Invoices</div>
+        {invoices.map(([d, amt, st], i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i < invoices.length - 1 ? `1px solid ${T.ln}` : 'none' }}>
+            <span style={{ flex: 1, color: T.ink, fontSize: 12.5 }}>{d}</span>
+            <span className="mono" style={{ color: T.sub, fontSize: 12.5 }}>{amt}</span>
+            <Tag c={T.blue}>{st}</Tag>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ── Voice guide — wires the existing voice agent into the shell. Works tonight on the
+// browser's built-in voice; flips to HD "Brian" automatically once ELEVENLABS_API_KEY is on
+// the server. Candidate-context only (Marcus is voice-first; Karen on web is not).
+function VoiceGuide() {
+  const voice = useVoiceAgent();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const line =
+    "Welcome to MissionReady. I'm your guide. We build your story by talking it through, not by filling out forms. Tap any section and I'll walk you through it, and you can stop whenever you want.";
+  // Mount-gate so the static prerender (no window) and the client agree — no hydration flash.
+  if (!mounted || !voice.supported.tts) return null;
+  const hd = Boolean(voice.premium.provider);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: T.card, border: `1px solid ${T.ln}`, borderRadius: 12, padding: '10px 14px', marginBottom: 16 }}>
+      <div style={{ width: 34, height: 34, borderRadius: '50%', background: hd ? T.blueDim : T.redDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <I n="play" s={15} c={hd ? T.blue : T.red} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>Voice guide</div>
+        <div className="mono" style={{ fontSize: 10, color: hd ? T.blue : T.sub, letterSpacing: '.04em' }}>{hd ? 'HD VOICE · ELEVENLABS' : 'BROWSER VOICE · HD WHEN KEY ADDED'}</div>
+      </div>
+      <Btn sm v={voice.speaking ? 'g' : 'p'} onClick={() => (voice.speaking ? voice.cancel() : voice.speak(line))}>
+        {voice.speaking ? 'Stop' : 'Hear it'}
+      </Btn>
+    </div>
+  );
+}
+
 // ── Generic surfaces for the remaining real tabs ─────────────────────────────────────────
 function RolesPage({ ctx }: any) {
   return (
@@ -565,7 +631,7 @@ export default function Preview() {
       if (id === 'analytics') return <AnalyticsPage ctx={ctx} />;
       if (id === 'messages_co') return <SimpleMessages />;
       if (id === 'team') return <TeamPage ctx={ctx} />;
-      if (id === 'billing') return <Placeholder title="Billing & Plan" sub={`${ctx.companyName} · admin`} />;
+      if (id === 'billing') return <BillingPage ctx={ctx} />;
     }
     return <Placeholder title="Not found" sub="" />;
   }
@@ -625,7 +691,10 @@ export default function Preview() {
 
       {/* Main */}
       <div key={`${ctxKey}:${safeSec}`} style={{ flex: 1, overflowY: 'auto', padding: '22px 24px' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>{render(safeSec)}</div>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          {ctx.mode === 'candidate' && <VoiceGuide />}
+          {render(safeSec)}
+        </div>
       </div>
     </div>
   );
