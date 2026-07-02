@@ -15,7 +15,7 @@
 // It's a self-contained client component (no server imports) so it prerenders static and
 // ships from the repo with zero keys.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   STRENGTH_REGISTRY,
   suggestLocations,
@@ -161,6 +161,7 @@ function resolveContext(key: string) {
 const TAB_CONFIG = [
   // Candidate — every tab maps to a real built feature (no Arena/XP/streaks)
   { id: 'profile', label: 'Profile', icon: 'profile', contextMode: 'candidate' },
+  { id: 'video', label: 'Intro video', icon: 'play', contextMode: 'candidate' },
   { id: 'strength', label: 'Strength', icon: 'spark', contextMode: 'candidate' },
   { id: 'jobs', label: 'Openings', icon: 'brief', contextMode: 'candidate' },
   { id: 'applications', label: 'Applications', icon: 'inbox', contextMode: 'candidate' },
@@ -405,6 +406,152 @@ function TokensPage({ balance }: any) {
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Candidate · Intro video — a real browser recorder (getUserMedia + MediaRecorder).
+// Records locally so the keyless demo works end-to-end; the production path is the mobile
+// native capture → Mux pipeline (Feature 1.4, /api/intro-video). +30 strength when done. ──
+const VIDEO_SCRIPT = [
+  ['Who you are', '“I’m Marcus — twelve years Army, logistics. I ran a 45-person platoon.”'],
+  ['One thing you’re proud of', 'A specific moment, not a job title. The day it all went wrong and you fixed it.'],
+  ['What you want next', 'Forward-looking, one sentence. Where you’re headed, not just where you’ve been.'],
+];
+
+function VideoPage() {
+  const [phase, setPhase] = useState<'idle' | 'live' | 'recorded' | 'saved' | 'denied'>('idle');
+  const [secs, setSecs] = useState(0);
+  const [clipUrl, setClipUrl] = useState<string | null>(null);
+  const liveRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopTimer = () => { if (timerRef.current) clearInterval(timerRef.current); timerRef.current = null; };
+
+  async function start() {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) { setPhase('denied'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+      const rec = new MediaRecorder(stream);
+      recRef.current = rec;
+      rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'video/webm' });
+        setClipUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(blob); });
+        setPhase('recorded');
+      };
+      setSecs(0);
+      setPhase('live');
+      rec.start();
+      // Attach the live stream once the <video> is in the DOM.
+      requestAnimationFrame(() => {
+        if (liveRef.current) { liveRef.current.srcObject = stream; liveRef.current.play().catch(() => {}); }
+      });
+      timerRef.current = setInterval(() => {
+        setSecs((s) => {
+          if (s >= 59) { stopRec(); return 60; }
+          return s + 1;
+        });
+      }, 1000);
+    } catch {
+      setPhase('denied');
+    }
+  }
+
+  function stopRec() {
+    stopTimer();
+    if (recRef.current && recRef.current.state !== 'inactive') recRef.current.stop();
+  }
+
+  function discard() {
+    if (clipUrl) URL.revokeObjectURL(clipUrl);
+    setClipUrl(null);
+    setSecs(0);
+    setPhase('idle');
+  }
+
+  useEffect(() => () => {
+    stopTimer();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    if (recRef.current && recRef.current.state !== 'inactive') recRef.current.stop();
+  }, []);
+
+  return (
+    <div className="rw-fu">
+      <Banner title="Intro video" sub="60 seconds. The person before the paper — employers watch this first." />
+
+      <Card sx={{ marginBottom: 12, padding: 0, overflow: 'hidden' }}>
+        <div style={{ aspectRatio: '16/9', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {phase === 'live' && (
+            <>
+              <video ref={liveRef} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+              <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(0,0,0,.55)', borderRadius: 99, padding: '5px 12px' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: T.red }} />
+                <span className="mono" style={{ color: '#fff', fontSize: 12 }}>{secs}s / 60s</span>
+              </div>
+            </>
+          )}
+          {(phase === 'recorded' || phase === 'saved') && clipUrl && (
+            <video src={clipUrl} controls playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          )}
+          {phase === 'idle' && (
+            <div style={{ textAlign: 'center', padding: 20 }}>
+              <div style={{ width: 54, height: 54, borderRadius: '50%', background: T.redDim, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}><I n="play" s={22} c={T.red} /></div>
+              <div style={{ color: T.sub, fontSize: 13 }}>Camera and mic stay off until you hit record.</div>
+            </div>
+          )}
+          {phase === 'denied' && (
+            <div style={{ textAlign: 'center', padding: 20, maxWidth: 340 }}>
+              <div style={{ color: T.ink, fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Camera unavailable</div>
+              <div style={{ color: T.sub, fontSize: 12.5, lineHeight: 1.55 }}>Allow camera and microphone access in your browser, then try again. On the phone, the app uses the native camera.</div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {phase !== 'saved' ? (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          {phase === 'live' ? (
+            <Btn full v="g" onClick={stopRec}>⏹ Stop recording</Btn>
+          ) : phase === 'recorded' ? (
+            <>
+              <Btn full v="ghost" onClick={discard}>Re-record</Btn>
+              <Btn full v="flag" onClick={() => setPhase('saved')}>Use this take</Btn>
+            </>
+          ) : (
+            <Btn full v="p" onClick={start}>⏺ Record your intro</Btn>
+          )}
+        </div>
+      ) : (
+        <div className="rw-pop" style={{ display: 'flex', alignItems: 'center', gap: 12, background: T.blueDim, border: `1px solid ${T.blueLn}`, borderRadius: 12, padding: '13px 16px', marginBottom: 14 }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><I n="check" s={17} c="#fff" /></div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 14, color: T.blue }}>Your intro is live. +30 strength.</div>
+            <div style={{ color: T.sub, fontSize: 12, marginTop: 2 }}>This is what a hiring manager sees first — the person, before the paper. (Demo: saved locally; the app uploads to your profile.)</div>
+          </div>
+        </div>
+      )}
+
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 3 }}>Your script — one take is plenty</div>
+        <div style={{ color: T.sub, fontSize: 12, marginBottom: 12 }}>Three beats. Don’t polish it — the unpolished version is the one that gets calls.</div>
+        {VIDEO_SCRIPT.map(([t, d], i) => (
+          <div key={t} style={{ display: 'flex', gap: 12, padding: '9px 0', borderBottom: i < VIDEO_SCRIPT.length - 1 ? `1px solid ${T.ln}` : 'none' }}>
+            <span className="disp" style={{ fontSize: 22, color: T.red, width: 20, flexShrink: 0, lineHeight: 1.1 }}>{i + 1}</span>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 12.5, color: T.ink }}>{t}</div>
+              <div style={{ color: T.sub, fontSize: 12, lineHeight: 1.55, marginTop: 2 }}>{d}</div>
+            </div>
+          </div>
+        ))}
+      </Card>
     </div>
   );
 }
@@ -994,6 +1141,7 @@ export default function Preview() {
   function render(id: string) {
     if (ctx.mode === 'candidate') {
       if (id === 'profile') return <ProfilePage />;
+      if (id === 'video') return <VideoPage />;
       if (id === 'strength') return <StrengthPage />;
       if (id === 'jobs') return <JobsPage balance={appTokens} applied={applied} onApply={applyToJob} />;
       if (id === 'applications') return <ApplicationsPage applied={applied} />;
