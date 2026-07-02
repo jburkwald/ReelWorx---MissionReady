@@ -68,6 +68,8 @@ const I = ({ n, s = 18, c = 'currentColor' }: { n: string; s?: number; c?: strin
     lock: <svg {...v}><rect {...p} x="3" y="11" width="18" height="11" rx="2" /><path {...p} d="M7 11V7a5 5 0 0110 0v4" /></svg>,
     down: <svg {...v}><polyline {...p} points="6 9 12 15 18 9" /></svg>,
     play: <svg {...v}><polygon {...p} points="6 4 20 12 6 20 6 4" /></svg>,
+    search: <svg {...v}><circle {...p} cx="11" cy="11" r="7" /><line {...p} x1="21" y1="21" x2="16.65" y2="16.65" /></svg>,
+    inbox: <svg {...v}><polyline {...p} points="22 12 16 12 14 15 10 15 8 12 2 12" /><path {...p} d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" /></svg>,
   };
   return <>{icons[n] ?? icons.grid}</>;
 };
@@ -160,12 +162,15 @@ const TAB_CONFIG = [
   // Candidate — every tab maps to a real built feature (no Arena/XP/streaks)
   { id: 'profile', label: 'Profile', icon: 'profile', contextMode: 'candidate' },
   { id: 'strength', label: 'Strength', icon: 'spark', contextMode: 'candidate' },
+  { id: 'jobs', label: 'Openings', icon: 'brief', contextMode: 'candidate' },
+  { id: 'applications', label: 'Applications', icon: 'inbox', contextMode: 'candidate' },
   { id: 'fit', label: 'Fit Reads', icon: 'target', contextMode: 'candidate' },
   { id: 'places', label: 'Places', icon: 'pin', contextMode: 'candidate' },
   { id: 'messages', label: 'Messages', icon: 'msg', contextMode: 'candidate' },
   { id: 'tokens', label: 'Tokens', icon: 'coin', contextMode: 'candidate' },
   // Company — recruiter+
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', contextMode: 'company' },
+  { id: 'source', label: 'Source', icon: 'search', contextMode: 'company' },
   { id: 'roles', label: 'Roles', icon: 'brief', contextMode: 'company', requirePerm: 'can_post_job' },
   { id: 'applicants', label: 'Applicants', icon: 'users', contextMode: 'company' },
   { id: 'analytics', label: 'Analytics', icon: 'chart', contextMode: 'company', requirePerm: 'can_view_analytics' },
@@ -184,8 +189,12 @@ function visibleTabs(ctx: any) {
   });
 }
 
-// ── Candidate · Profile ──────────────────────────────────────────────────────────────────
+// ── Candidate · Profile — living, deepening, two outputs ─────────────────────────────────
 function ProfilePage() {
+  // The depth layer (spec: ONE specific follow-up question per section, answer gets woven
+  // into the narrative, not appended as a note).
+  const [momentText, setMomentText] = useState('');
+  const [woven, setWoven] = useState(false);
   const history = [
     { role: 'Senior Fabricator', co: 'Midwest Industrial', yrs: '2022–2024', why: 'Took the lead role to own quality end-to-end; left in an economic layoff, not for lack of work.' },
     { role: 'Fabricator II', co: 'Great Lakes Steel', yrs: '2020–2022', why: 'Moved up after proving out on structural welds. Relocated for family.' },
@@ -211,16 +220,66 @@ function ProfilePage() {
       </Card>
       <Card sx={{ marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 12 }}>Work history — the why behind each move</div>
-        {history.map((j, i) => (
-          <div key={i} style={{ padding: '10px 0', borderBottom: i < history.length - 1 ? `1px solid ${T.ln}` : 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>{j.role}</span>
-              <span className="mono" style={{ color: T.sub, fontSize: 11 }}>{j.yrs}</span>
+        {history.map((j, i) => {
+          const whyText = i === 0 && woven && momentText.trim() ? `${j.why} ${momentText.trim()}` : j.why;
+          return (
+            <div key={i} style={{ padding: '10px 0', borderBottom: i < history.length - 1 ? `1px solid ${T.ln}` : 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>{j.role}</span>
+                <span className="mono" style={{ color: T.sub, fontSize: 11 }}>{j.yrs}</span>
+              </div>
+              <div style={{ color: T.sub, fontSize: 12, marginTop: 1 }}>{j.co}</div>
+              <div style={{ color: T.ink, fontSize: 12.5, lineHeight: 1.6, marginTop: 6, paddingLeft: 10, borderLeft: `2px solid ${i === 0 && woven ? T.blueLn : T.redLn}` }}>{whyText}</div>
             </div>
-            <div style={{ color: T.sub, fontSize: 12, marginTop: 1 }}>{j.co}</div>
-            <div style={{ color: T.ink, fontSize: 12.5, lineHeight: 1.6, marginTop: 6, paddingLeft: 10, borderLeft: `2px solid ${T.redLn}` }}>{j.why}</div>
+          );
+        })}
+      </Card>
+
+      {/* The depth layer — one specific question, woven into the story (never a form) */}
+      <Card sx={{ marginBottom: 10 }} ac={woven ? T.blueLn : T.redLn}>
+        {!woven ? (
+          <>
+            <div className="mono" style={{ fontSize: 10, color: T.red, letterSpacing: '.08em', marginBottom: 8 }}>GO DEEPER · SENIOR FABRICATOR</div>
+            <div style={{ color: T.ink, fontSize: 13.5, lineHeight: 1.6, fontStyle: 'italic', marginBottom: 10 }}>
+              “When you were running that floor, was there a moment where everything went wrong and you had to figure it out anyway? I'd love to add that to your story.”
+            </div>
+            <textarea rows={3} value={momentText} onChange={(e) => setMomentText(e.target.value)} placeholder="Tell it the way you'd tell a friend — a specific day, what broke, what you did..." style={{ width: '100%', background: T.surf, border: `1px solid ${T.ln2}`, borderRadius: 8, padding: '9px 12px', color: T.ink, fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }} />
+            <Btn full v="p" dis={!momentText.trim()} onClick={() => setWoven(true)}>Weave it into my story</Btn>
+          </>
+        ) : (
+          <div className="rw-pop" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: T.blueDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><I n="check" s={16} c={T.blue} /></div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: T.blue }}>Story deepened.</div>
+              <div style={{ color: T.sub, fontSize: 12, marginTop: 1 }}>Woven into your Senior Fabricator chapter above — not tacked on as a note.</div>
+            </div>
           </div>
-        ))}
+        )}
+      </Card>
+
+      {/* One profile, two outputs — the human story + the ATS-safe document */}
+      <Card sx={{ marginBottom: 10 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 3 }}>One profile, two outputs</div>
+        <div style={{ color: T.sub, fontSize: 12, lineHeight: 1.55, marginBottom: 12 }}>The rich story is what you send to stand out. The clean document is what you upload when a system demands an attachment — single column, standard headings, passes any ATS.</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn full v="p">Share your story</Btn>
+          <Btn full v="g">Download ATS resume</Btn>
+        </div>
+      </Card>
+
+      {/* Living profile — it grows after the first build */}
+      <Card sx={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>Living profile</div>
+          <Btn sm v="ghost">+ Add a chapter</Btn>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: T.blueDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><I n="spark" s={15} c={T.blue} /></div>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 12.5, color: T.ink }}>Completed OSHA 30 certification</div>
+            <div style={{ color: T.sub, fontSize: 11.5, marginTop: 2 }}>Added March 2026 · visible to companies following you</div>
+          </div>
+        </div>
       </Card>
       <Card>
         <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 14 }}>Skills</div>
@@ -328,13 +387,13 @@ function PlacesPage() {
 }
 
 // ── Candidate · Tokens (intent currency — NOT points) ────────────────────────────────────
-function TokensPage() {
+function TokensPage({ balance }: any) {
   return (
     <div className="rw-fu">
       <Banner title="Tokens" sub="Your reach is finite on purpose — so it means something" />
       <Card sx={{ marginBottom: 14, background: `linear-gradient(120deg,${T.redDim},transparent)`, borderColor: T.redLn }}>
         <div className="mono" style={{ fontSize: 10, color: T.sub, letterSpacing: '.1em', marginBottom: 4 }}>BALANCE</div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}><span className="disp" style={{ fontSize: 52, color: T.ink, lineHeight: 0.85 }}>11</span><span style={{ color: T.sub, fontSize: 14, marginBottom: 6 }}>application tokens</span></div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}><span className="disp" style={{ fontSize: 52, color: T.ink, lineHeight: 0.85 }}>{balance}</span><span style={{ color: T.sub, fontSize: 14, marginBottom: 6 }}>application tokens</span></div>
         <div style={{ color: T.sub, fontSize: 12.5, marginTop: 8, lineHeight: 1.55 }}>An application costs a token. That cost is the point: it makes every outreach a real signal to an employer, not noise. Renews monthly.</div>
       </Card>
       <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 8 }}>Earn more by deepening your profile</div>
@@ -343,6 +402,136 @@ function TokensPage() {
           <Card key={l} sx={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1, color: T.ink, fontSize: 13, fontWeight: 600 }}>{l}</div>
             <Tag c={done ? T.blue : T.red}>{r}</Tag>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Candidate · Openings — video-first roles, applying costs a token (signal, not spam) ───
+const OPENINGS = [
+  { id: 'j1', co: 'Midland Steel', title: 'Senior Structural Fabricator', pay: '$28–$34/hr', place: 'Waukesha, WI', fit: 94, preview: 'The shop lead walks you through a real Tuesday — the floor, the crew, what breaks and who fixes it.' },
+  { id: 'j2', co: 'Cumberland Freight', title: 'Shop Lead', pay: '$30–$36/hr', place: 'Nashville, TN', fit: 81, preview: 'Their maintenance chief shows the bay you would run and the first 90 days, honestly.' },
+  { id: 'j3', co: 'Great Lakes Mfg', title: 'Fabricator II', pay: '$24–$29/hr', place: 'Columbus, OH', fit: 68, preview: 'A day on the line with the crew you would join — no stock footage.' },
+  { id: 'j4', co: 'Cascade Operations', title: 'Maintenance Supervisor', pay: '$32–$38/hr', place: 'Seattle, WA', fit: 74, preview: 'The plant manager on what good looks like at 6am when a line is down.' },
+];
+
+function JobsPage({ balance, applied, onApply }: any) {
+  return (
+    <div className="rw-fu">
+      <Banner title="Openings" sub="Video-first roles, matched to who you are — applying costs a token, so it lands as real intent" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {OPENINGS.map((j) => {
+          const sent = applied.includes(j.id);
+          const top = j.fit >= 90;
+          return (
+            <Card key={j.id} ac={top ? T.blueLn : T.ln}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <Avatar name={j.co} size={40} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: T.ink }}>{j.title}</div>
+                  <div style={{ color: T.sub, fontSize: 12, marginTop: 1 }}>{j.co} · {j.place} · {j.pay}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="disp" style={{ fontSize: 26, color: top ? T.blue : T.red, lineHeight: 1 }}>{j.fit}%</div>
+                  <div className="mono" style={{ color: T.sub, fontSize: 9 }}>FIT</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginTop: 10, background: T.surf, border: `1px solid ${T.ln}`, borderRadius: 9, padding: '9px 12px' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: T.redDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><I n="play" s={13} c={T.red} /></div>
+                <div style={{ color: T.sub, fontSize: 12, lineHeight: 1.5 }}>{j.preview}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 12 }}>
+                {sent ? (
+                  <div className="rw-pop" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: T.blueDim, border: `1px solid ${T.blueLn}`, borderRadius: 9, padding: '9px 12px' }}>
+                    <I n="check" s={14} c={T.blue} />
+                    <span style={{ color: T.blue, fontSize: 12.5, fontWeight: 700 }}>Sent — track it in Applications. You'll see every status.</span>
+                  </div>
+                ) : (
+                  <>
+                    <Btn v={top ? 'flag' : 'p'} dis={balance <= 0} onClick={() => onApply(j.id)}>Apply · 1 token</Btn>
+                    <Btn v="ghost">Watch the role</Btn>
+                  </>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Candidate · Applications — the black-hole killer. Every application has a visible,
+// honest status trail. Even a no comes with a reason, never a void. ──────────────────────
+const SEED_APPLICATIONS = [
+  {
+    job: 'Senior Structural Fabricator', co: 'Midland Steel', when: 'Applied 3 days ago', state: 'Interview invited', stateC: 'blue',
+    steps: [
+      { t: 'Application sent', d: 'Tue 9:12 AM', done: true },
+      { t: 'Seen by Sarah King, HR', d: '2 hours after you applied', done: true },
+      { t: 'Fit read shared with the shop foreman', d: 'Wed', done: true },
+      { t: 'Interview invite — pick a time', d: 'Today', done: true, active: true },
+    ],
+  },
+  {
+    job: 'Maintenance Lead', co: 'Great Lakes Mfg', when: 'Applied 1 week ago', state: 'In review', stateC: 'red',
+    steps: [
+      { t: 'Application sent', d: 'Last Mon', done: true },
+      { t: 'Seen by the hiring team', d: '1 day after you applied', done: true },
+      { t: 'In review — 4 candidates in this round', d: 'Honest count, updated live', done: true, active: true },
+      { t: 'Decision', d: 'They committed to answer within 10 days', done: false },
+    ],
+  },
+  {
+    job: 'Ops Coordinator', co: 'Titan Fabrication', when: 'Applied 2 weeks ago', state: 'Closed, with a reason', stateC: 'dim',
+    steps: [
+      { t: 'Application sent', d: '2 weeks ago', done: true },
+      { t: 'Seen and reviewed', d: '3 days in', done: true },
+      { t: 'Role filled internally. Their note: “Strong profile — we kept you visible to our team.”', d: 'A real answer, not silence', done: true, active: true },
+    ],
+  },
+];
+
+function ApplicationsPage({ applied }: any) {
+  const dynamic = OPENINGS.filter((j) => applied.includes(j.id)).map((j) => ({
+    job: j.title, co: j.co, when: 'Applied just now', state: 'Sent', stateC: 'red',
+    steps: [
+      { t: 'Application sent', d: 'Just now', done: true, active: true },
+      { t: 'First status lands when a human sees it', d: 'You will know — always', done: false },
+    ],
+  }));
+  const all = [...dynamic, ...SEED_APPLICATIONS];
+  const stateColor = (c: string) => (c === 'blue' ? T.blue : c === 'dim' ? T.sub : T.red);
+  return (
+    <div className="rw-fu">
+      <Banner title="Applications" sub="No black holes. Every application has a status you can see — including the no's." accent={T.blue} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {all.map((a, i) => (
+          <Card key={i}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <Avatar name={a.co} size={38} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13.5, color: T.ink }}>{a.job}</div>
+                <div style={{ color: T.sub, fontSize: 12 }}>{a.co} · {a.when}</div>
+              </div>
+              <Tag c={stateColor(a.stateC)}>{a.state}</Tag>
+            </div>
+            <div style={{ paddingLeft: 6 }}>
+              {a.steps.map((s: any, k: number) => (
+                <div key={k} style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.active ? (a.stateC === 'blue' ? T.blue : T.red) : s.done ? T.ln2 : 'transparent', border: s.done ? 'none' : `1.5px solid ${T.ln2}`, flexShrink: 0, marginTop: 4 }} />
+                    {k < a.steps.length - 1 && <div style={{ width: 1.5, flex: 1, background: T.ln2, minHeight: 18 }} />}
+                  </div>
+                  <div style={{ paddingBottom: k < a.steps.length - 1 ? 12 : 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: s.active ? 700 : 500, color: s.done ? T.ink : T.sub, lineHeight: 1.5 }}>{s.t}</div>
+                    <div className="mono" style={{ fontSize: 10.5, color: T.sub, marginTop: 1 }}>{s.d}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
         ))}
       </div>
@@ -372,31 +561,208 @@ function DashboardPage({ ctx }: any) {
   );
 }
 
-// ── Company · Applicants (Fit Read) ──────────────────────────────────────────────────────
+// ── Company · Applicants — Karen's decision surface. Everything she needs to decide
+// whether to invest in an interview, on one screen: the person, the proof, the honest gap. ─
+const APPLICANTS = [
+  {
+    name: 'Marcus T.', role: 'Senior Structural Fabricator', match: 94,
+    why: 'Ran a 45-person logistics floor under pressure — built to run a shop.',
+    home: 'Columbus, OH', openTo: ['Milwaukee, WI', 'Nashville, TN'],
+    decoded: 'Led 45 people and millions in equipment; ran daily logistics under real pressure. In business terms: a working supervisor who can own a distribution or fabrication floor from day one.',
+    proofs: ['Held a Secret clearance — passed a federal background bar', '6 years without a recordable safety incident on his watch', 'Trained and certified 12 junior operators'],
+    moves: [
+      { role: 'Senior Fabricator, Midwest Industrial', why: 'Took the lead role to own quality end-to-end. Left in an economic layoff — not for lack of work.' },
+      { role: 'Logistics Platoon Sergeant, US Army', why: 'Learned that you earn trust by showing up first and leaving last — through a deployment in extreme heat with supply delays.' },
+    ],
+    dims: [['Skills & experience', 92], ['Resilience & drive', 95], ['Interpersonal EQ', 84], ['Motivation & values', 90], ['Working style', 78]],
+    gap: 'Lighter on CNC programming than the role ideal — everything else clears the bar with room.',
+  },
+  {
+    name: 'Jason K.', role: 'Lead MIG Welder', match: 87,
+    why: 'Deep structural welding background; strong on conscientiousness.',
+    home: 'Nashville, TN', openTo: ['Waukesha, WI'],
+    decoded: 'A craftsman first: a decade of structural work with inspection-grade standards. Reads as the steady core of a crew, not the loudest voice in it.',
+    proofs: ['AWS D1.1 certified, current', 'Zero rework flags across last two employers'],
+    moves: [{ role: 'Lead Welder, Atlas Mechanical', why: 'Moved for the harder work — wanted inspection-grade standards, not production shortcuts.' }],
+    dims: [['Skills & experience', 90], ['Resilience & drive', 82], ['Interpersonal EQ', 74], ['Motivation & values', 88], ['Working style', 85]],
+    gap: 'Less leadership time than the role ideal — a strong second, growing into a first.',
+  },
+  {
+    name: 'Deon R.', role: 'CNC Machinist', match: 79,
+    why: 'High drive, early in transition; would grow into the role fast.',
+    home: 'Dayton, OH', openTo: ['Anywhere in the Midwest'],
+    decoded: 'Early in his civilian transition with the steepest growth curve on this list. What he lacks in shop years he covers in discipline and speed of learning.',
+    proofs: ['SkillBridge completion, machining track', 'Volunteered for every qualification available to him'],
+    moves: [{ role: 'Machinist Mate, US Navy', why: 'Chose the rating for the craft — wanted a trade he could carry into civilian life.' }],
+    dims: [['Skills & experience', 68], ['Resilience & drive', 92], ['Interpersonal EQ', 80], ['Motivation & values', 86], ['Working style', 75]],
+    gap: 'Two years of shop experience against a role ideal of five — an investment hire, honestly framed.',
+  },
+];
+
 function ApplicantsPage({ ctx }: any) {
-  const apps = [
-    { name: 'Marcus T.', role: 'Sr Fabricator', match: 94, why: 'Ran a 45-person logistics floor under pressure — built to run a shop.' },
-    { name: 'Jason K.', role: 'Lead Welder', match: 87, why: 'Deep structural welding background; strong on conscientiousness.' },
-    { name: 'Deon R.', role: 'CNC Machinist', match: 79, why: 'High drive, early in transition; would grow into the role fast.' },
-  ];
+  const [sel, setSel] = useState<number | null>(null);
+  if (sel !== null) {
+    const a = APPLICANTS[sel];
+    const top = a.match >= 90;
+    return (
+      <div className="rw-fu">
+        <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', color: T.sub, fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0, marginBottom: 14, fontFamily: 'inherit' }}>‹ All applicants</button>
+        <Card sx={{ marginBottom: 10 }} ac={top ? T.blueLn : T.ln}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <Avatar name={a.name} size={52} self />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 17, color: T.ink }}>{a.name}</div>
+              <div style={{ color: T.sub, fontSize: 12.5, marginTop: 2 }}>Applying: {a.role}</div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                <Tag c={T.red}>★ {a.home}</Tag>
+                {a.openTo.map((o) => <Tag key={o} c={T.blue}>Open to {o}</Tag>)}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div className="disp" style={{ fontSize: 38, color: top ? T.blue : T.red, lineHeight: 1 }}>{a.match}%</div>
+              <div className="mono" style={{ color: T.sub, fontSize: 9 }}>{top ? 'EXCEPTIONAL FIT' : 'FIT'}</div>
+            </div>
+          </div>
+        </Card>
+        <Card sx={{ marginBottom: 10, display: 'flex', gap: 12, alignItems: 'center', cursor: 'pointer' }}>
+          <div style={{ width: 44, height: 44, borderRadius: 11, background: T.redDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><I n="play" s={19} c={T.red} /></div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>60-second intro</div>
+            <div style={{ color: T.sub, fontSize: 12 }}>The person before the paper — watch before you read.</div>
+          </div>
+        </Card>
+        <Card sx={{ marginBottom: 10 }}>
+          <div className="mono" style={{ fontSize: 10, color: T.red, letterSpacing: '.08em', marginBottom: 8 }}>DECODED — WHAT THE SERVICE RECORD MEANS FOR YOUR FLOOR</div>
+          <div style={{ color: T.ink, fontSize: 13, lineHeight: 1.65 }}>{a.decoded}</div>
+          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {a.proofs.map((pf) => (
+              <div key={pf} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <I n="check" s={13} c={T.blue} />
+                <span style={{ color: T.sub, fontSize: 12.5, lineHeight: 1.5 }}>{pf}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card sx={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 10 }}>The why behind each move — what a resume erases</div>
+          {a.moves.map((m, k) => (
+            <div key={k} style={{ padding: '8px 0', borderBottom: k < a.moves.length - 1 ? `1px solid ${T.ln}` : 'none' }}>
+              <div style={{ fontWeight: 600, fontSize: 12.5, color: T.ink }}>{m.role}</div>
+              <div style={{ color: T.sub, fontSize: 12.5, lineHeight: 1.6, marginTop: 4, paddingLeft: 10, borderLeft: `2px solid ${T.redLn}` }}>{m.why}</div>
+            </div>
+          ))}
+        </Card>
+        <Card sx={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 12 }}>Fit, dimension by dimension</div>
+          {a.dims.map(([l, v]: any) => (
+            <div key={l} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 12 }}><span style={{ color: T.ink }}>{l}</span><span className="mono" style={{ color: v >= 90 ? T.blue : T.red }}>{v}</span></div>
+              <Bar val={v} c={v >= 90 ? T.blue : T.red} />
+            </div>
+          ))}
+          <div style={{ color: T.sub, fontSize: 12.5, lineHeight: 1.6, marginTop: 6 }}><span style={{ fontWeight: 700 }}>The honest gap: </span>{a.gap}</div>
+        </Card>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn full v={top ? 'flag' : 'p'}>Invite to interview · 1 token</Btn>
+          <Btn full v="g">Message {a.name.split(' ')[0]}</Btn>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="rw-fu">
-      <Banner title="Applicants" sub={`${ctx.companyName} · sorted by fit`} />
+      <Banner title="Applicants" sub={`${ctx.companyName} · sorted by fit — open one to see the whole person`} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {apps.map((a, i) => (
-          <Card key={i}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        {APPLICANTS.map((a, i) => (
+          <Card key={i} sx={{ cursor: 'pointer' }}>
+            <div onClick={() => setSel(i)} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               <Avatar name={a.name} size={40} />
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>{a.name}</div><div style={{ color: T.sub, fontSize: 12 }}>{a.role}</div></div>
               <div style={{ textAlign: 'right' }}>
                 <div className="disp" style={{ fontSize: 28, color: a.match > 90 ? T.blue : T.red, lineHeight: 1 }}>{a.match}%</div>
                 <div className="mono" style={{ color: T.sub, fontSize: 9 }}>FIT</div>
               </div>
+              <span style={{ color: T.sub, fontSize: 18 }}>›</span>
             </div>
             <div style={{ color: T.ink, fontSize: 12.5, lineHeight: 1.6, marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${a.match > 90 ? T.blueLn : T.redLn}` }}>{a.why}</div>
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Company · Source — "Come Home." Find people FROM a place, OPEN TO a place, or either —
+// then reach out directly. The two location fields, working separately, as promised. ──────
+const SOURCE_POOL = [
+  { name: 'Marcus T.', headline: 'Ops leader who ran a 45-person logistics platoon', home: 'Columbus, OH', roots: ['Columbus, OH', 'Lancaster, OH'], openTo: ['Milwaukee, WI', 'Nashville, TN', 'Anywhere in the Midwest'], strength: 90 },
+  { name: 'Carla V.', headline: 'Quality-first fabricator, 12 years on structural steel', home: 'Milwaukee, WI', roots: ['Milwaukee, WI'], openTo: ['Madison, WI'], strength: 84 },
+  { name: 'Deon R.', headline: 'CNC machinist, early in his transition, steep growth curve', home: 'Dayton, OH', roots: ['Dayton, OH'], openTo: ['Anywhere in the Midwest', 'Milwaukee, WI'], strength: 67 },
+  { name: 'Jason K.', headline: 'Lead welder with inspection-grade standards', home: 'Nashville, TN', roots: ['Nashville, TN'], openTo: [], strength: 78 },
+];
+
+function SourcePage({ ctx }: any) {
+  const [place, setPlace] = useState('Milwaukee');
+  const [scope, setScope] = useState<'hometown' | 'open_to' | 'either'>('either');
+  const [invited, setInvited] = useState<string[]>([]);
+  const p = place.trim().toLowerCase();
+  const results = SOURCE_POOL.map((c) => {
+    const byHome = !!p && (c.home.toLowerCase().includes(p) || c.roots.some((r) => r.toLowerCase().includes(p)));
+    const byOpen = !!p && c.openTo.some((o) => o.toLowerCase().includes(p));
+    return { c, byHome, byOpen };
+  }).filter((r) => !p || (scope === 'hometown' ? r.byHome : scope === 'open_to' ? r.byOpen : r.byHome || r.byOpen));
+  const scopes: [typeof scope, string][] = [['hometown', 'From here (Come Home)'], ['open_to', 'Would move here'], ['either', 'Either']];
+  return (
+    <div className="rw-fu">
+      <Banner title="Source people" sub={`${ctx.companyName} · find talent with roots in your region, or willing to come`} />
+      <Card sx={{ marginBottom: 12 }}>
+        <input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Search a place — city, state, or region" style={{ width: '100%', background: T.surf, border: `1px solid ${T.ln2}`, borderRadius: 9, padding: '11px 14px', color: T.ink, fontSize: 14, fontFamily: 'inherit', marginBottom: 10 }} />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {scopes.map(([k, l]) => (
+            <button key={k} onClick={() => setScope(k)} style={{ padding: '6px 13px', borderRadius: 99, background: scope === k ? T.red : 'transparent', border: `1px solid ${scope === k ? T.red : T.ln2}`, color: scope === k ? '#fff' : T.sub, fontSize: 12, fontWeight: scope === k ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit' }}>{l}</button>
+          ))}
+        </div>
+      </Card>
+      {results.length === 0 ? (
+        <Card sx={{ textAlign: 'center', padding: '30px 20px' }}><div style={{ color: T.sub, fontSize: 13 }}>No one matches that place and filter yet — new people land here as they join.</div></Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {results.map(({ c, byHome, byOpen }) => {
+            const sent = invited.includes(c.name);
+            return (
+              <Card key={c.name}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <Avatar name={c.name} size={40} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: T.ink }}>{c.name}</div>
+                    <div style={{ color: T.sub, fontSize: 12, lineHeight: 1.5, marginTop: 1 }}>{c.headline}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div className="disp" style={{ fontSize: 24, color: T.ink, lineHeight: 1 }}>{c.strength}</div>
+                    <div className="mono" style={{ color: T.sub, fontSize: 8.5 }}>STRENGTH</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                  {byHome && p ? <Tag c={T.red}>★ Come Home — {c.home}</Tag> : <Tag c={T.sub}>★ {c.home}</Tag>}
+                  {byOpen && p && <Tag c={T.blue}>Open to moving here</Tag>}
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  {sent ? (
+                    <div className="rw-pop" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: T.blueDim, border: `1px solid ${T.blueLn}`, borderRadius: 9, padding: '8px 12px' }}>
+                      <I n="check" s={13} c={T.blue} /><span style={{ color: T.blue, fontSize: 12, fontWeight: 700 }}>Invite sent — they see who you are and why you reached out.</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Btn sm v="p" onClick={() => setInvited((xs) => [...xs, c.name])}>Invite · 1 token</Btn>
+                      <Btn sm v="ghost">View story</Btn>
+                    </>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -605,6 +971,15 @@ export default function Preview() {
   const [sec, setSec] = useState('profile');
   const [slim, setSlim] = useState(false);
   const [switcher, setSwitcher] = useState(false);
+  // Shared candidate state: applying from Openings spends a token and shows up in the
+  // Applications tracker immediately — the loop, closed, in one shell.
+  const [appTokens, setAppTokens] = useState(11);
+  const [applied, setApplied] = useState<string[]>([]);
+  const applyToJob = (id: string) => {
+    if (appTokens <= 0 || applied.includes(id)) return;
+    setAppTokens((t) => t - 1);
+    setApplied((xs) => [...xs, id]);
+  };
 
   const ctx = resolveContext(ctxKey);
   const tabs = visibleTabs(ctx);
@@ -620,12 +995,15 @@ export default function Preview() {
     if (ctx.mode === 'candidate') {
       if (id === 'profile') return <ProfilePage />;
       if (id === 'strength') return <StrengthPage />;
+      if (id === 'jobs') return <JobsPage balance={appTokens} applied={applied} onApply={applyToJob} />;
+      if (id === 'applications') return <ApplicationsPage applied={applied} />;
       if (id === 'fit') return <FitReadsPage />;
       if (id === 'places') return <PlacesPage />;
       if (id === 'messages') return <SimpleMessages />;
-      if (id === 'tokens') return <TokensPage />;
+      if (id === 'tokens') return <TokensPage balance={appTokens} />;
     } else {
       if (id === 'dashboard') return <DashboardPage ctx={ctx} />;
+      if (id === 'source') return <SourcePage ctx={ctx} />;
       if (id === 'roles') return <RolesPage ctx={ctx} />;
       if (id === 'applicants') return <ApplicantsPage ctx={ctx} />;
       if (id === 'analytics') return <AnalyticsPage ctx={ctx} />;
