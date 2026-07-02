@@ -23,6 +23,13 @@ export {
   type SaveAssessmentResult,
 } from './assessment';
 export {
+  runAssessmentTurn,
+  saveAssessmentRead,
+  ASSESSMENT_AGENT_PROMPT,
+  type RunAssessmentTurnOptions,
+  type SaveAssessmentReadResult,
+} from './assessment-agent';
+export {
   createIntroVideoUpload,
   saveIntroVideo,
   type SaveIntroVideoResult,

@@ -69,6 +69,7 @@ const I = ({ n, s = 18, c = 'currentColor' }: { n: string; s?: number; c?: strin
     down: <svg {...v}><polyline {...p} points="6 9 12 15 18 9" /></svg>,
     play: <svg {...v}><polygon {...p} points="6 4 20 12 6 20 6 4" /></svg>,
     search: <svg {...v}><circle {...p} cx="11" cy="11" r="7" /><line {...p} x1="21" y1="21" x2="16.65" y2="16.65" /></svg>,
+    compass: <svg {...v}><circle {...p} cx="12" cy="12" r="10" /><polygon {...p} points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>,
     inbox: <svg {...v}><polyline {...p} points="22 12 16 12 14 15 10 15 8 12 2 12" /><path {...p} d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" /></svg>,
   };
   return <>{icons[n] ?? icons.grid}</>;
@@ -162,6 +163,7 @@ const TAB_CONFIG = [
   // Candidate — every tab maps to a real built feature (no Arena/XP/streaks)
   { id: 'profile', label: 'Profile', icon: 'profile', contextMode: 'candidate' },
   { id: 'video', label: 'Intro video', icon: 'play', contextMode: 'candidate' },
+  { id: 'insight', label: 'Insight', icon: 'compass', contextMode: 'candidate' },
   { id: 'strength', label: 'Strength', icon: 'spark', contextMode: 'candidate' },
   { id: 'jobs', label: 'Openings', icon: 'brief', contextMode: 'candidate' },
   { id: 'applications', label: 'Applications', icon: 'inbox', contextMode: 'candidate' },
@@ -556,6 +558,106 @@ function VideoPage() {
   );
 }
 
+// ── Candidate · Insight — the Full Spectrum assessment agent, LIVE. A real conversation
+// (never a form) that reads personality, EQ, and resilience from stories. Talks to
+// /api/guest/assessment: the real Claude agent with a key, a scripted walk-through
+// without one, so tonight's keyless demo completes end to end. ────────────────────────────
+const INSIGHT_OPENER =
+  "This part isn't a test. There are no right answers and nothing to study for — I'm just going to ask for a few real stories, because how you actually handled a real Tuesday says more than any rating scale ever could.\n\nFirst one: tell me about a time a plan fell apart on you. What did you do in the first ten minutes?";
+
+function InsightPage() {
+  const [msgs, setMsgs] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
+    { role: 'assistant', content: INSIGHT_OPENER },
+  ]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [reflection, setReflection] = useState<string | null>(null);
+  const [narrative, setNarrative] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
+  const [showNarrative, setShowNarrative] = useState(false);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || busy || reflection) return;
+    const next = [...msgs, { role: 'user' as const, content: text }];
+    setMsgs(next);
+    setInput('');
+    setBusy(true);
+    try {
+      const res = await fetch('/api/guest/assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: next }),
+      });
+      const d = await res.json();
+      if (d.demo) setIsDemo(true);
+      if (d.reply) setMsgs((m) => [...m, { role: 'assistant', content: d.reply }]);
+      if (d.complete) {
+        setReflection(d.reflection ?? d.reply ?? null);
+        setNarrative(d.narrative ?? null);
+      }
+    } catch {
+      setMsgs((m) => [...m, { role: 'assistant', content: 'I lost the thread for a second — say that again?' }]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rw-fu">
+      <Banner title="Insight" sub="Not a test — a conversation. How you think, work with people, and handle pressure." />
+
+      <Card sx={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ maxHeight: 380, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {msgs.map((m, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '85%', padding: '10px 13px', borderRadius: m.role === 'user' ? '13px 13px 4px 13px' : '13px 13px 13px 4px', background: m.role === 'user' ? T.red : T.surf, border: m.role === 'user' ? 'none' : `1px solid ${T.ln}`, fontSize: 13, color: m.role === 'user' ? '#fff' : T.ink, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.content}</div>
+            </div>
+          ))}
+          {busy && (
+            <div style={{ display: 'flex', gap: 4, padding: '6px 4px' }}>
+              {[0, 1, 2].map((k) => <div key={k} style={{ width: 6, height: 6, borderRadius: '50%', background: T.sub, animation: `rwUp 1s ease ${k * 0.15}s infinite alternate` }} />)}
+            </div>
+          )}
+        </div>
+        {!reflection && (
+          <div style={{ padding: '10px 12px', borderTop: `1px solid ${T.ln}`, display: 'flex', gap: 8 }}>
+            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Tell it like it happened — specifics beat polish" disabled={busy} style={{ flex: 1, background: T.surf, border: `1px solid ${T.ln2}`, borderRadius: 99, padding: '10px 16px', color: T.ink, fontSize: 13, fontFamily: 'inherit' }} />
+            <button onClick={send} disabled={busy || !input.trim()} style={{ width: 40, height: 40, borderRadius: '50%', background: input.trim() && !busy ? T.red : T.ln2, border: 'none', cursor: input.trim() && !busy ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <I n="check" s={16} c="#fff" />
+            </button>
+          </div>
+        )}
+      </Card>
+
+      {reflection && (
+        <div className="rw-pop" style={{ marginBottom: 12 }}>
+          <Card ac={T.blueLn} sx={{ background: `linear-gradient(120deg,${T.blueDim},transparent)` }}>
+            <div className="mono" style={{ fontSize: 10, color: T.blue, letterSpacing: '.08em', marginBottom: 8 }}>YOUR REFLECTION · +25 STRENGTH</div>
+            <div style={{ color: T.ink, fontSize: 13.5, lineHeight: 1.7 }}>{reflection}</div>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.ln}` }}>
+              <button onClick={() => setShowNarrative((s) => !s)} style={{ background: 'none', border: 'none', color: T.sub, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                {showNarrative ? '▾' : '▸'} What the hiring manager sees
+              </button>
+              {showNarrative && (
+                <div style={{ color: T.sub, fontSize: 12.5, lineHeight: 1.65, marginTop: 8 }}>
+                  {narrative ?? 'Your Insight narrative — the 90-second read that brings you to life for an employer — is written from this conversation and lands on the company side of your profile. Open the Midland Steel context → Applicants → Marcus T. to see what one looks like.'}
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {isDemo && (
+        <div className="mono" style={{ fontSize: 10.5, color: T.sub, textAlign: 'center', letterSpacing: '.04em' }}>
+          SCRIPTED WALK-THROUGH · ADD ANTHROPIC_API_KEY FOR THE LIVE AGENT
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Candidate · Openings — video-first roles, applying costs a token (signal, not spam) ───
 const OPENINGS = [
   { id: 'j1', co: 'Midland Steel', title: 'Senior Structural Fabricator', pay: '$28–$34/hr', place: 'Waukesha, WI', fit: 94, preview: 'The shop lead walks you through a real Tuesday — the floor, the crew, what breaks and who fixes it.' },
@@ -723,6 +825,11 @@ const APPLICANTS = [
     ],
     dims: [['Skills & experience', 92], ['Resilience & drive', 95], ['Interpersonal EQ', 84], ['Motivation & values', 90], ['Working style', 78]],
     gap: 'Lighter on CNC programming than the role ideal — everything else clears the bar with room.',
+    insight: [
+      "Marcus doesn't wait to be handed a broken process. When the parts inventory system at his last shop kept losing track of backordered items, he built his own tracking sheet on the side before anyone asked him to, then brought it to his supervisor already working. That instinct, to fix the thing rather than flag the thing, shows up everywhere in how he talks about his work.",
+      "He's steady under pressure in a specific way: not loud, not visibly rattled, but he'll tell you plainly when a plan isn't working rather than quietly pushing through it. When a coworker was struggling to keep pace during a rush, Marcus noticed before anyone said anything and shifted his own workload to cover, then talked to the guy afterward instead of letting it become a thing. That's the pattern with him: he reads what's happening around him and acts on it without needing to be asked.",
+      "He'll do best somewhere that gives him real ownership over a piece of the operation rather than a narrow lane, and where people say what they mean directly. He's not looking to be managed closely. He's looking for a problem worth solving.",
+    ],
   },
   {
     name: 'Jason K.', role: 'Lead MIG Welder', match: 87,
@@ -790,6 +897,15 @@ function ApplicantsPage({ ctx }: any) {
             ))}
           </div>
         </Card>
+        {a.insight && (
+          <Card sx={{ marginBottom: 10 }} ac={T.blueLn}>
+            <div className="mono" style={{ fontSize: 10, color: T.blue, letterSpacing: '.08em', marginBottom: 8 }}>INSIGHT · HOW HE OPERATES — A 90-SECOND READ</div>
+            {a.insight.map((para: string, k: number) => (
+              <p key={k} style={{ color: T.ink, fontSize: 13, lineHeight: 1.7, margin: k === 0 ? 0 : '10px 0 0' }}>{para}</p>
+            ))}
+            <div style={{ color: T.sub, fontSize: 11.5, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.ln}` }}>Written by the Full Spectrum agent from his own words — not a trait checklist.</div>
+          </Card>
+        )}
         <Card sx={{ marginBottom: 10 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: T.ink, marginBottom: 10 }}>The why behind each move — what a resume erases</div>
           {a.moves.map((m, k) => (
@@ -1142,6 +1258,7 @@ export default function Preview() {
     if (ctx.mode === 'candidate') {
       if (id === 'profile') return <ProfilePage />;
       if (id === 'video') return <VideoPage />;
+      if (id === 'insight') return <InsightPage />;
       if (id === 'strength') return <StrengthPage />;
       if (id === 'jobs') return <JobsPage balance={appTokens} applied={applied} onApply={applyToJob} />;
       if (id === 'applications') return <ApplicationsPage applied={applied} />;

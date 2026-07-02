@@ -4,5 +4,6 @@
 // ASSESSMENT_ITEMS, the backend scores responses with scoreAssessment. No server deps.
 
 export * from './types';
+export * from './agent-types';
 export { ASSESSMENT_ITEMS, ASSESSMENT_ITEM_COUNT } from './items';
 export { scoreAssessment, hasAssessmentScores } from './score';
